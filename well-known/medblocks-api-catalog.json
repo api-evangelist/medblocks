@@ -1,0 +1,28 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://medblocks.com/api",
+      "service-desc": [
+        {
+          "href": "https://medblocks.com/openapi.json",
+          "type": "application/vnd.oai.openapi+json",
+          "title": "Medblocks public API description (OpenAPI 3.1)"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://medblocks.com/docs",
+          "type": "text/html",
+          "title": "Medblocks documentation"
+        }
+      ],
+      "describedby": [
+        {
+          "href": "https://medblocks.com/llms.txt",
+          "type": "text/plain",
+          "title": "Medblocks site summary for language models"
+        }
+      ]
+    }
+  ]
+}

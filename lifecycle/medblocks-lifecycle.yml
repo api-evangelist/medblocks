@@ -1,0 +1,68 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/reference/changelog, https://medblocks.com/docs/reference/versioning,
+  https://medblocks.com/docs/reference/errors, openapi/medblocks-platform-openapi.json
+versioning:
+  scheme: date-pinned
+  current: '2026-04-25'
+  mechanism: >-
+    An optional `Version` request header carrying a date string. When it is omitted, Medblocks
+    uses the version pinned on the API key. Declared in the contract as
+    components.parameters.Version and applied to every operation.
+  webhook_versioning: >-
+    Each webhook delivery envelope carries `api_version`, the version pinned at endpoint
+    registration — so a receiver's payload shape is pinned independently of the caller's key.
+  unsupported_version_behaviour: >-
+    HTTP 400 with error.type invalid_request_error and error.code unsupported_api_version.
+  docs: https://medblocks.com/docs/reference/versioning
+  note: >-
+    The mechanism is real and enforced in the contract, but the /docs/reference/versioning page
+    is still a stub — it carries a "This page is being written as part of the docs restructure"
+    callout and no upgrade policy, no supported-version list and no deprecation window. The
+    same is true of /docs/reference/conventions.
+deprecation:
+  policy_published: false
+  sunset_header: false
+  deprecation_header: false
+  deprecated_operations: []
+  note: >-
+    No RFC 8594 Sunset or Deprecation response header is documented, no deprecation policy page
+    exists, and no operation in openapi/medblocks-platform-openapi.json carries
+    `deprecated: true`. The SDK changelog does record a real breaking change (v1.2.0 removed
+    eight typed error subclasses) with a stated migration, but that is release-note practice
+    rather than a published API deprecation policy.
+status_page:
+  published: false
+  probes:
+  - url: https://status.medblocks.com
+    status: '<no response>'
+    note: DNS did not resolve
+  - url: https://medblocks.com/docs/status
+    status: 404
+  liveness_endpoint:
+    url: https://app.medblocks.com/health
+    operation: api.health
+    status: 200
+    auth: none
+    note: >-
+      Probed 2026-09-02; returned {"ok":true,"server_time":"2026-09-02T19:40:56.198Z"} with an
+      X-Request-Id header. An unauthenticated liveness probe is published in the contract, but
+      it is not a status page — there is no incident history, component breakdown or
+      subscription.
+sla:
+  published: false
+  note: No SLA or uptime commitment was found in the public docs, on the billing page, or in the terms.
+changelog:
+  published: true
+  url: https://medblocks.com/docs/reference/changelog
+  scope: SDK
+  note: >-
+    The published changelog is the `medblocks` TypeScript SDK changelog (generated from
+    sdk/connect/CHANGELOG.md), newest first, with dated entries and an explicit Breaking
+    Changes section. There is no separate dated changelog for the API itself; API change is
+    expressed through the date-pinned Version header. See changelog/medblocks-changelog.yml.
+support:
+  channel: https://forms.gle/dtVxkmfL6Yimp6SBA
+  contact: support@medblocks.com
+  note: Every docs page ends with the same "Need help?" block pointing at a Google Form.

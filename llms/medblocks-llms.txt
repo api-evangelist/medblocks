@@ -1,0 +1,43 @@
+# Medblocks
+> Medblocks provides Health IT development services, training bootcamps, and open-source
+tools for building healthcare applications using FHIR, openEHR, and SNOMED CT standards.
+Founded by Sidharth Ramesh.
+## Company Overview
+- [Homepage](https://www.medblocks.com): Health IT services company helping organizations
+build standard-based healthcare software
+- [About / Story](https://www.medblocks.com/blog/the-story-of-medblocks): Origin story of
+Medblocks, from blockchain prototype to healthcare interoperability
+## Services
+- [Sprint - Development as a Service](https://www.medblocks.com/sprint): Rapid Health IT
+development using FHIR and openEHR standards, advocating for software ownership over SaaS
+subscriptions
+## Training
+- [FHIR Bootcamp](https://www.medblocks.com/training/courses/fhir-bootcamp): Build 5 FHIR
+applications in 10 weeks (300+ students enrolled)
+- [openEHR Bootcamp](https://www.medblocks.com/training/courses/openehr-bootcamp): Build 5
+openEHR applications in 10 weeks (250+ students)
+- [FHIR Fundamentals](https://www.medblocks.com/training/courses/fhir-fundamentals): Free
+introductory FHIR course (500+ students)
+- [openEHR Fundamentals](https://www.medblocks.com/training/courses/openehr-fundamentals):
+Introductory openEHR course (50+ students)
+## Documentation
+- [Docs](https://www.medblocks.com/docs): Technical documentation for Medblocks tools and
+services
+## Blog
+- [Blog](https://www.medblocks.com/blog): Articles on healthcare IT, FHIR, openEHR,
+interoperability
+
+## Key Facts
+- Founded by Sidharth Ramesh
+- Headquartered in Dover, Delaware, USA
+- 100+ companies trust Medblocks
+- 1,100+ training students across all courses
+- Open source: 62 GitHub repositories (github.com/medblocks)
+- YouTube channel: 8,800+ subscribers, 356 videos (@medblocks)
+- Specializes in: FHIR, openEHR, SNOMED CT, Health IT interoperability, Postgres-based EHR
+## Optional
+- [GitHub](https://github.com/medblocks): Open source healthcare tools (medblocks-ui, openFHIR)
+- [YouTube](https://www.youtube.com/@medblocks): 356 videos on FHIR and openEHR
+development
+- [LinkedIn](https://in.linkedin.com/company/medblocks): Company page (6,900+ followers)
+- [Case Studies](https://www.medblocks.com/blog/case-study): Client success stories

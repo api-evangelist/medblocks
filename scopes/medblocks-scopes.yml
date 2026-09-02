@@ -1,0 +1,87 @@
+generated: '2026-09-02'
+method: probed
+source: >-
+  https://app.medblocks.com/.well-known/oauth-authorization-server,
+  https://app.medblocks.com/.well-known/oauth-protected-resource/mcp,
+  WWW-Authenticate challenge from POST https://app.medblocks.com/mcp
+docs: https://medblocks.com/docs/mcp
+note: >-
+  These scopes are NOT declared in openapi/medblocks-platform-openapi.json, which secures every
+  operation with a single bearer API key (BearerAuth). They belong to the OAuth authorization
+  server that fronts the hosted MCP server, and they were read from the provider's own RFC 8414
+  and RFC 9728 metadata documents plus the RFC 6750 challenge the MCP endpoint returns to an
+  unauthenticated caller. The three tick boxes a user sees on the consent screen are a
+  product-level grouping over these scopes; the mapping between the two is not published, so the
+  consent grouping is recorded separately rather than asserted against individual scopes.
+authorization_server:
+  issuer: https://app.medblocks.com/api/auth
+  authorization_endpoint: https://app.medblocks.com/api/auth/oauth2/authorize
+  token_endpoint: https://app.medblocks.com/api/auth/oauth2/token
+  jwks_uri: https://app.medblocks.com/api/auth/jwks
+  registration_endpoint: https://app.medblocks.com/api/auth/oauth2/register
+  introspection_endpoint: https://app.medblocks.com/api/auth/oauth2/introspect
+  revocation_endpoint: https://app.medblocks.com/api/auth/oauth2/revoke
+  userinfo_endpoint: https://app.medblocks.com/api/auth/oauth2/userinfo
+  end_session_endpoint: https://app.medblocks.com/api/auth/oauth2/end-session
+  grant_types: [authorization_code, client_credentials, refresh_token]
+  code_challenge_methods: [S256]
+  id_token_signing_alg: [EdDSA]
+protected_resource:
+  resource: https://app.medblocks.com/mcp
+  authorization_servers: [https://app.medblocks.com/api/auth]
+  bearer_methods: [header]
+scope_count: 10
+scopes:
+- name: openid
+  description: OpenID Connect authentication; issues an ID token identifying the signed-in user.
+  category: identity
+- name: profile
+  description: Standard OIDC profile claims (name, picture, family_name, given_name).
+  category: identity
+- name: email
+  description: Standard OIDC email claims (email, email_verified).
+  category: identity
+- name: offline_access
+  description: Issues a refresh token so the client can keep access without re-prompting.
+  category: session
+- name: patients:read
+  description: Read patients (the "people" in the MCP surface) in the workspace.
+  category: patients
+  rest_equivalent: [api.listPatients, api.getPatient]
+- name: patients:write
+  description: Create, update and delete patients in the workspace.
+  category: patients
+  rest_equivalent: [api.createPatient, api.updatePatient, api.deletePatient]
+- name: patient_sessions:read
+  description: Read patient authorization sessions and their status.
+  category: patient-sessions
+  rest_equivalent: [api.listPatientSessionsForPatient, api.retrievePatientSession]
+- name: patient_sessions:write
+  description: Start a patient authorization session against one or more sources.
+  category: patient-sessions
+  rest_equivalent: [api.initPatientSession]
+- name: connections:read
+  description: Read the EHR/FHIR source catalog and the workspace's configured connections.
+  category: connections
+  rest_equivalent: [api.listFhirSources, api.getFhirSource]
+- name: fhir:read
+  description: Read the patient's stored FHIR records.
+  category: records
+  rest_equivalent: [api.getPatientRecords]
+consent_screen:
+  note: >-
+    Interactive OAuth users are shown three tick boxes rather than raw scopes. All three are
+    ticked by default and a user may grant fewer than requested; identity and workspace
+    visibility are granted without a prompt.
+  choices:
+  - label: Connect your healthcare facilities
+    default: on
+  - label: Read your health records
+    default: on
+  - label: Manage people and delete data
+    default: on
+    destructive: true
+api_key_alternative: >-
+  A developer client may send an mb_sk_ API key as a bearer token instead of running the OAuth
+  flow. The docs state a key uses the permissions stamped on it rather than these consent
+  scopes, and that a key connection stays bound to the workspace that minted it.

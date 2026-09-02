@@ -1,0 +1,77 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/medblocks-ui-docs, https://github.com/medblocks/medblocks-ui,
+  https://www.npmjs.com/package/medblocks-ui
+note: >-
+  medblocks-ui is a first-party open-source (Apache-2.0) library of standards-native Web
+  Components for building clinical data-entry interfaces. It renders openEHR web templates and
+  FHIR Questionnaires into forms and emits openEHR compositions or FHIR resources, and because
+  the elements are custom elements they work in any framework or in a server-rendered template.
+  It is a UI component library, not a client for the Medblocks Platform API — it predates the
+  Platform API and is listed separately from packages/medblocks-packages.yml's SDK entry for
+  that reason. Individual element names are taken from the provider's own documentation index;
+  each element has its own docs page under /medblocks-ui-docs/.
+families:
+- name: medblocks-ui
+  kind: web-components
+  loader: npm package medblocks-ui (custom elements; usable via a bundler or a script tag)
+  version: 0.0.217
+  published: '2025-04-29'
+  license: Apache-2.0
+  repository: https://github.com/medblocks/medblocks-ui
+  docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui
+  install_docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-installation
+  standards: [openEHR, FHIR, SNOMED CT]
+  components:
+  - {name: mb-form, role: openEHR composition form host, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-form}
+  - {name: mb-fhir-form, role: FHIR resource form host, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-fhir-form}
+  - {name: mb-context, role: form context provider, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-context}
+  - {name: mb-input, role: text input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-input}
+  - {name: mb-input-multiple, role: repeating input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-input-multiple}
+  - {name: mb-select, role: coded select, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-select}
+  - {name: mb-text-select, role: free-text select, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-text-select}
+  - {name: mb-dropdown, role: dropdown, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-dropdown}
+  - {name: mb-option, role: option child element, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-option}
+  - {name: mb-checkbox, role: checkbox, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-checkbox}
+  - {name: mb-checkbox-any, role: any-of checkbox group, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-checkbox-any}
+  - {name: mb-date, role: date input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-date}
+  - {name: mb-duration, role: openEHR DV_DURATION input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-duration}
+  - {name: mb-quantity, role: openEHR DV_QUANTITY input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-quantity}
+  - {name: mb-proportion, role: openEHR DV_PROPORTION input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-proportion}
+  - {name: mb-percent, role: percentage input, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-percent}
+  - {name: mb-unit, role: unit selector, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-unit}
+  - {name: mb-search, role: terminology search (SNOMED CT), docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-search}
+  - {name: mb-filter, role: terminology filter, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-filter}
+  - {name: mb-buttons, role: button group, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-buttons}
+  - {name: mb-submit, role: submit control, docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-mb-submit}
+  guides:
+  - {topic: Usage, url: https://medblocks.com/medblocks-ui-docs/medblocks-ui-usage}
+  - {topic: Advanced, url: https://medblocks.com/medblocks-ui-docs/medblocks-ui-advanced}
+  - {topic: Data formats, url: https://medblocks.com/medblocks-ui-docs/medblocks-ui-data-formats}
+  - {topic: Styling, url: https://medblocks.com/medblocks-ui-docs/medblocks-ui-styling}
+  - {topic: Terminology integration, url: https://medblocks.com/medblocks-ui-docs/medblocks-ui-terminology-integration}
+  tooling:
+  - name: VS Code extension for Medblocks UI
+    repository: https://github.com/medblocks/vscode-medblocks-ui
+    docs: https://medblocks.com/medblocks-ui-docs/medblocks-ui-vscode-extension
+    registry: null
+    version: null
+    note: >-
+      Published as a GitHub repository. A marketplace lookup for
+      itemName=medblocks.medblocks-ui returned 404, so no marketplace version or publish date
+      could be recorded.
+hosted_surfaces:
+- name: Medblocks-hosted Patient Access page
+  kind: hosted redirect flow
+  docs: https://medblocks.com/docs/patient-access/create-patient-session/medblocks-hosted-page
+  note: >-
+    Not an embeddable component. The app supplies a patient id and return URL, then redirects
+    the patient to the session URL Medblocks returns; source discovery and authorization UI are
+    handled by Medblocks.
+- name: MCP in-chat facility panel
+  kind: in-chat panel rendered by the MCP server
+  docs: https://medblocks.com/docs/mcp
+  note: >-
+    Rendered inside ChatGPT and claude.ai by the choose_health_systems tool. Not available in
+    terminal clients (Claude Code, Codex), which fall back to a conversational list and a link.

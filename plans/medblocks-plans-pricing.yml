@@ -1,0 +1,58 @@
+generated: '2026-09-02'
+method: searched
+source: https://medblocks.com/docs/billing
+plan_count: 2
+currency: USD
+note: >-
+  Medblocks publishes its plans on the docs billing page rather than on a marketing /pricing
+  route (https://medblocks.com/pricing returns 404). Both tiers and both prices are stated
+  openly, including the enterprise number — unusual for this category — and upgrades go
+  through support@medblocks.com rather than self-serve checkout. The homepage carries an
+  older, different framing (free up to 5 patients, $20/active patient/year pay-as-you-go,
+  $60,000/year Complete); the docs billing page is the more specific and more recent of the
+  two and is what is recorded here. The discrepancy on the free-tier patient allowance
+  (5 vs 1,000) is a real inconsistency in the provider's own published material, not an
+  ambiguity introduced here.
+plans:
+- name: Free
+  price: 0
+  currency: USD
+  billing_period: null
+  self_serve: true
+  included_quota:
+    active_patients: 1000
+    definition: >-
+      A patient counts as active the first time Medblocks successfully pulls FHIR data for
+      them; creating a patient record does not draw against the quota.
+  overage: none
+  on_limit:
+    status: 402
+    error_type: billing_error
+    error_code: quota_exceeded
+  features:
+  - Patient-mediated exchange
+  - Synthetic sandboxes
+  - Full API access
+  - Wearable device sync
+  - Export destinations
+  - Custom EHR client IDs
+- name: Enterprise
+  price: 60000
+  currency: USD
+  billing_period: year
+  self_serve: false
+  contact: support@medblocks.com
+  included_quota:
+    active_patients: uncapped
+  overage: null
+  features:
+  - Everything in Free
+  - Backend Services
+  - Clinical Workflows
+  - OCR
+  - Data structuring
+  on_limit:
+    status: 402
+    error_type: billing_error
+    error_code: feature_not_enabled
+    note: Returned when the workspace plan does not include the requested feature.

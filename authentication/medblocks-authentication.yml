@@ -1,0 +1,94 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/mcp, https://medblocks.com/docs/security-and-compliance,
+  https://medblocks.com/docs/sandboxes, https://medblocks.com/docs/reference/errors,
+  https://app.medblocks.com/.well-known/oauth-authorization-server,
+  openapi/medblocks-platform-openapi.json
+summary:
+  types:
+  - http
+  - oauth2
+  - openIdConnect
+  note: >-
+    Two distinct authentication surfaces. The REST Medblocks Platform API is bearer API key
+    only — that is the single securityScheme in the contract, applied globally. The hosted MCP
+    server at https://app.medblocks.com/mcp additionally accepts OAuth 2.1 / OIDC with a
+    consent screen, and will also accept the same mb_sk_ key as a bearer token for
+    non-interactive developer clients.
+schemes:
+- name: BearerAuth
+  type: http
+  scheme: bearer
+  bearerFormat: API key (mb_sk_live_...)
+  description: Medblocks API key for server-side requests.
+  applies_to: medblocks-platform-api
+  global: true
+  sources:
+  - openapi/medblocks-platform-openapi.json
+  key_prefixes:
+  - prefix: mb_sk_live_
+    environment: production
+  - prefix: mb_sk_sbx_
+    environment: sandbox
+    note: minted by a Sandbox workspace; only sees sandbox-scoped sources
+  - prefix: mb_sk_
+    environment: any
+    note: >-
+      The MCP docs and the provider's own agent skill refer to the key generically as mb_sk_;
+      live and sandbox are the two documented environment suffixes.
+  provisioning: Dashboard > Settings > API Keys
+  workspace_binding: >-
+    A key is bound to the workspace that minted it and cannot switch workspaces.
+  failure_codes:
+  - {status: 401, code: missing_api_key, meaning: Authorization header is missing}
+  - {status: 401, code: invalid_api_key, meaning: API key is invalid}
+  - {status: 401, code: expired_api_key, meaning: API key is expired}
+  - {status: 403, code: insufficient_scope, meaning: API key lacks the required scope}
+  - {status: 429, code: api_key_limit_exceeded, meaning: organization has reached its active API key cap}
+- name: MedblocksOAuth
+  type: oauth2
+  applies_to: mcp
+  flows:
+    authorizationCode:
+      authorizationUrl: https://app.medblocks.com/api/auth/oauth2/authorize
+      tokenUrl: https://app.medblocks.com/api/auth/oauth2/token
+      refreshUrl: https://app.medblocks.com/api/auth/oauth2/token
+      pkce: S256
+  additional_grants: [client_credentials, refresh_token]
+  dynamic_client_registration: https://app.medblocks.com/api/auth/oauth2/register
+  scopes_artifact: scopes/medblocks-scopes.yml
+  sources:
+  - https://app.medblocks.com/.well-known/oauth-authorization-server
+  note: >-
+    Not declared in the OpenAPI document. Discovered from the provider's RFC 8414 metadata and
+    the RFC 9728 challenge the MCP endpoint returns.
+- name: MedblocksOIDC
+  type: openIdConnect
+  openIdConnectUrl: https://app.medblocks.com/.well-known/openid-configuration
+  applies_to: mcp
+  id_token_signing_alg: [EdDSA]
+  claims: [sub, iss, aud, exp, iat, sid, scope, azp, email, email_verified, name, picture, family_name, given_name]
+  sources:
+  - https://app.medblocks.com/.well-known/openid-configuration
+upstream_authentication:
+  note: >-
+    Distinct from calling Medblocks. Medblocks itself authenticates to the EHRs and payers on
+    the customer's behalf. Patient-mediated sources use per-patient OAuth against the source's
+    portal; backend/bulk sources use SMART Backend Services with a customer-supplied private
+    key. Source client secrets and SMART private keys are configured server-side in Medblocks
+    under Configure connections, never in browser code.
+  docs: https://medblocks.com/docs/configure-connections
+secret_handling:
+  rules:
+  - Keep MEDBLOCKS_API_KEY server-side only; the frontend calls your backend and your backend calls Medblocks.
+  - Never place an API key in a URL, prompt, tool argument, browser bundle or log.
+  - Webhook signing secrets, source client secrets, SMART private keys and export-destination credentials are all server-side secrets.
+  - Do not log API keys, webhook secrets, bearer tokens, access tokens, or full FHIR resources.
+  docs: https://medblocks.com/docs/security-and-compliance
+revocation:
+  api_key: Rotate or revoke from Dashboard > Settings > API Keys.
+  oauth: >-
+    Dashboard > Settings > MCP server revokes an AI assistant's access; already-issued access
+    expires within an hour.
+  webhook_secret: POST /webhooks/{id}/rotate-secret (api.rotateWebhookSecret).

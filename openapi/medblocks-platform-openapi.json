@@ -1,0 +1,4643 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Medblocks API",
+    "version": "2026-04-25",
+    "description": "Developer API for the Medblocks Platform.\n\nConnect any patient to one or more EHRs (Epic, Cerner, Athena, …) via a single hosted PatientSession, then pull their unified FHIR records through this API. Server-to-server only — no browser-side calls. Authenticate every request with a Bearer secret key.\n\n**Resources:** `PatientSession`, `Patient`, `Connection`, `FhirSource`. **Conventions:** date-pinned versioning (optional `Version` header), a typed error envelope on every non-2xx response.",
+    "license": {
+      "name": "Proprietary",
+      "url": "https://medblocks.com/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://app.medblocks.com"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "api.health",
+        "summary": "Liveness check",
+        "description": "Unauthenticated probe that returns `ok` and the current `server_time` to confirm the API is reachable.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "const": true,
+                      "description": "Always true. Presence of this field plus 200 status confirms the server is reachable."
+                    },
+                    "server_time": {
+                      "type": "string",
+                      "description": "Current server time in ISO 8601. Use to spot clock skew."
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "server_time"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients": {
+      "post": {
+        "operationId": "api.createPatient",
+        "summary": "Create a patient",
+        "description": "Create a patient with your own `patient_id` plus optional email, name, and metadata. The id is unique within your organization.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientCreateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Patient"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ]
+      },
+      "get": {
+        "operationId": "api.listPatients",
+        "summary": "List patients",
+        "description": "List your organization's patients with cursor pagination and optional exact-match filters on `patient_id` or `email`.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "Maximum number of items to return."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Pagination cursor from `next_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "patient_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Exact-match filter on `patient_id`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Exact-match filter on `email`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resource_type": {
+                      "const": "list",
+                      "description": "Resource type discriminator. Always `\"list\"` for paginated responses."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Patient"
+                      },
+                      "description": "Items on this page."
+                    },
+                    "has_more": {
+                      "type": "boolean",
+                      "description": "`true` when there's at least one more page after this one."
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass as `starting_after` to fetch the next page. `null` when there's no more data."
+                    }
+                  },
+                  "required": [
+                    "resource_type",
+                    "data",
+                    "has_more",
+                    "next_cursor"
+                  ],
+                  "examples": [
+                    {
+                      "resource_type": "list",
+                      "data": [
+                        {
+                          "id": "user_42",
+                          "resource_type": "patient",
+                          "email": "jane@example.com",
+                          "name": "Jane Doe",
+                          "metadata": {
+                            "plan": "premium"
+                          },
+                          "created_at": "2026-04-25T14:30:00.000Z"
+                        }
+                      ],
+                      "has_more": false,
+                      "next_cursor": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients/{id}": {
+      "get": {
+        "operationId": "api.getPatient",
+        "summary": "Retrieve a patient",
+        "description": "Retrieve a patient by their `patient_id` - the developer-provided identifier set on creation.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Your `patient_id` from Patient creation or Session upsert."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "api.updatePatient",
+        "summary": "Update a patient",
+        "description": "Update a patient by id. Omitted optional fields are cleared. `patient_id` in the body must match the URL.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Your `patient_id` from Patient creation or Session upsert."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "patient_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Must match the `{id}` URL param. 400 if mismatched. Immutable."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "New email. Omit or pass `null` to clear."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "New name. Omit or pass `null` to clear (UI falls back to the patient_id)."
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {},
+                    "description": "New metadata. Omit to clear (replaced with `{}`)."
+                  }
+                },
+                "required": [
+                  "patient_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Patient"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "api.deletePatient",
+        "summary": "Delete a patient",
+        "description": "Permanently delete a patient and their connections by `patient_id`. Returns a tombstone confirming the deletion.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Your `patient_id` from Patient creation or Session upsert."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDeleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients/{id}/connections/{connection_id}": {
+      "delete": {
+        "operationId": "api.disconnectPatientConnection",
+        "summary": "Disconnect a connection",
+        "description": "Revoke your organization's access to one of the patient's connections by its `conn_` id. The patient's link to the source EHR is removed for your organization; stored tokens are revoked when no other workspace still uses them. Returns a tombstone confirming the disconnect.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Your `patient_id` from Patient creation or Session upsert."
+            }
+          },
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The `conn_` connection id from the patient's `connections[]`."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionDisconnected"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients/{id}/patient-sessions": {
+      "get": {
+        "operationId": "api.listPatientSessionsForPatient",
+        "summary": "List patient sessions for a patient",
+        "description": "List a patient's sessions with cursor pagination and an optional `status` filter, identified by their `patient_id`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Your `patient_id` from Patient creation or Session upsert."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "Maximum number of items to return."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Pagination cursor from `next_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "open",
+                "complete",
+                "expired"
+              ],
+              "type": "string",
+              "description": "Filter by patient_session status."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resource_type": {
+                      "const": "list",
+                      "description": "Resource type discriminator. Always `\"list\"` for paginated responses."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PatientSession"
+                      },
+                      "description": "Items on this page."
+                    },
+                    "has_more": {
+                      "type": "boolean",
+                      "description": "`true` when there's at least one more page after this one."
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass as `starting_after` to fetch the next page. `null` when there's no more data."
+                    }
+                  },
+                  "required": [
+                    "resource_type",
+                    "data",
+                    "has_more",
+                    "next_cursor"
+                  ],
+                  "examples": [
+                    {
+                      "resource_type": "list",
+                      "data": [
+                        {
+                          "id": "ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT",
+                          "resource_type": "patient_session",
+                          "status": "open",
+                          "url": "https://app.medblocks.com/c/9c9b6f7a8e4f4a3b9c1e6f3a2d8b7c4d",
+                          "patient_id": "user_42",
+                          "connection_id": null,
+                          "recommended_connection_ids": [
+                            "fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc",
+                            "fhirsrc_0a9Ea55aR4u7HaWMyFBN8wcc",
+                            "fhirsrc_lcvXRHLSSI2WK9Prrt5Qggcc"
+                          ],
+                          "return_url": "https://app.example.com/connected",
+                          "return_button_label": "Acme Health",
+                          "connections": [],
+                          "expires_at": "2026-04-25T15:00:00.000Z",
+                          "metadata": {
+                            "signup_source": "checkout"
+                          },
+                          "created_at": "2026-04-25T14:30:00.000Z"
+                        }
+                      ],
+                      "has_more": false,
+                      "next_cursor": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients/{id}/records": {
+      "get": {
+        "operationId": "api.getPatientRecords",
+        "summary": "Get patient records",
+        "description": "Return the patient's latest stored FHIR resources with their source EHR, paginated.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Your `patient_id` from Patient creation or Session upsert."
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated FHIR resource types to include, e.g. `Observation,Condition`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "string",
+                  "format": "date"
+                }
+              ],
+              "description": "ISO 8601 date or timestamp. Returns current resources changed after this time."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100,
+              "description": "Maximum items per page."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Opaque 12-character cursor from a previous response's `next_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "ending_before",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Opaque 12-character cursor from a previous response's `previous_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientRecords"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{id}": {
+      "get": {
+        "operationId": "api.getFhirSource",
+        "summary": "Retrieve a FHIR source",
+        "description": "Retrieve a single EHR from the catalog by its `fhirsrc_` id or raw `fhir_base_url`, scoped to your environment.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "FHIR source id (`fhirsrc_*` or raw `fhir_base_url`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FhirSource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections": {
+      "get": {
+        "operationId": "api.listFhirSources",
+        "summary": "List FHIR sources",
+        "description": "Search the catalog of registered EHRs with cursor pagination and optional `q` text and vendor `type` filters.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "Maximum number of items to return."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Pagination cursor from `next_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Search text for the connection catalog."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Filter by vendor type (`epic`, `cerner`, etc.)."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resource_type": {
+                      "const": "list",
+                      "description": "Resource type discriminator. Always `\"list\"` for paginated responses."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FhirSource"
+                      },
+                      "description": "Items on this page."
+                    },
+                    "has_more": {
+                      "type": "boolean",
+                      "description": "`true` when there's at least one more page after this one."
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass as `starting_after` to fetch the next page. `null` when there's no more data."
+                    }
+                  },
+                  "required": [
+                    "resource_type",
+                    "data",
+                    "has_more",
+                    "next_cursor"
+                  ],
+                  "examples": [
+                    {
+                      "resource_type": "list",
+                      "data": [
+                        {
+                          "id": "fhirsrc_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+                          "resource_type": "fhir_source",
+                          "name": "Epic MyChart",
+                          "type": "epic",
+                          "fhir_base_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
+                          "logo_url": "https://cdn.medblocks.com/ehr-logos/epic.svg",
+                          "portal_url": "https://mychart.epic.com"
+                        }
+                      ],
+                      "has_more": false,
+                      "next_cursor": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patient-sessions": {
+      "post": {
+        "operationId": "api.initPatientSession",
+        "summary": "Start a patient session",
+        "description": "Start a patient session and get back a `url` to send the patient to so they can connect their records. Track progress with the session's `status`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientSessionInitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "callbacks": {
+          "pickerModeReturn": {
+            "https://your-app.com/connected?patient_id={patient_id}&patient_session_id={patient_session_id}": {
+              "get": {
+                "summary": "Medblocks-hosted page - patient clicked Done",
+                "description": "When the patient chooses a connection on the Medblocks-hosted page, Medblocks redirects the patient after they click Done. Call `GET /patients/{patient_id}` from your backend to inspect the patient's current connection state, or `GET /patient-sessions/{patient_session_id}` for the specific connections made in this session.",
+                "parameters": [
+                  {
+                    "name": "patient_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "Your developer-supplied external patient id. Use this to look up the patient via `GET /patients/{id}`."
+                  },
+                  {
+                    "name": "patient_session_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "The `ps_*` public id of the completed patient_session."
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Your handler accepted the redirect."
+                  }
+                }
+              }
+            }
+          },
+          "directModeSuccess": {
+            "https://your-app.com/connected?patient_id={patient_id}&patient_session_id={patient_session_id}&success=true&connection_id={connection_id}": {
+              "get": {
+                "summary": "Your own UI - EHR connection succeeded",
+                "description": "When `connection_id` was set on patient_session creation and the patient successfully authenticated with the EHR, Medblocks redirects straight to your `return_url` without showing any UI.",
+                "parameters": [
+                  {
+                    "name": "patient_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "Your developer-supplied external patient id. Use this to look up the patient via `GET /patients/{id}`."
+                  },
+                  {
+                    "name": "patient_session_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "The `ps_*` public id of the completed patient_session."
+                  },
+                  {
+                    "name": "success",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "true"
+                      ]
+                    },
+                    "description": "Always `\"true\"` on success."
+                  },
+                  {
+                    "name": "connection_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "The `fhirsrc_*` public id of the connected EHR."
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Your handler accepted the redirect."
+                  }
+                }
+              }
+            }
+          },
+          "directModeError": {
+            "https://your-app.com/connected?patient_id={patient_id}&patient_session_id={patient_session_id}&success=false&error={error_code}": {
+              "get": {
+                "summary": "Your own UI - EHR connection failed",
+                "description": "When `connection_id` was set on patient_session creation and the EHR authentication failed (patient denied, OAuth error, etc.), Medblocks redirects to your `return_url` with error details.",
+                "parameters": [
+                  {
+                    "name": "patient_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "Your developer-supplied external patient id. Use this to look up the patient via `GET /patients/{id}`."
+                  },
+                  {
+                    "name": "patient_session_id",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "The `ps_*` public id of the patient_session."
+                  },
+                  {
+                    "name": "success",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "enum": [
+                        "false"
+                      ]
+                    },
+                    "description": "Always `\"false\"` on failure."
+                  },
+                  {
+                    "name": "error",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "Stable error code (e.g. `user_denied`, `oauth_callback_failed`)."
+                  },
+                  {
+                    "name": "error_description",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    },
+                    "description": "Human-readable error message."
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Your handler accepted the redirect."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patient-sessions/{id}": {
+      "get": {
+        "operationId": "api.retrievePatientSession",
+        "summary": "Retrieve a patient session",
+        "description": "Retrieve a patient session by its `ps_` id, including its current status and the connections created during it.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Patient session id (`ps_*`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/launch-contexts/{id}": {
+      "get": {
+        "operationId": "api.retrieveLaunchContext",
+        "summary": "Retrieve an EHR launch context",
+        "description": "Resolve the `mb_launch` handle (appended to your app's launch URL after an EHR launch) into the patient / encounter / practitioner / EHR the app was launched in.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The `mb_launch` handle appended to your app's launch URL by Connect after an EHR launch."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The launch handle (echoes the `mb_launch` value)."
+                    },
+                    "resource_type": {
+                      "const": "launch_context",
+                      "description": "Resource type discriminator. Always `\"launch_context\"`."
+                    },
+                    "status": {
+                      "enum": [
+                        "ready",
+                        "pending"
+                      ],
+                      "type": "string",
+                      "description": "`ready` once the launch's token exchange has completed; `pending` before it has."
+                    },
+                    "patient": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "FHIR reference of the launched patient (e.g. `Patient/123`). Null if the launch had no patient context."
+                    },
+                    "encounter": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "FHIR reference of the launched encounter (e.g. `Encounter/456`). Null if absent."
+                    },
+                    "fhir_user": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "FHIR reference of the launching user / practitioner (e.g. `Practitioner/789`), from the id_token. Null if absent."
+                    },
+                    "scope": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Space-delimited scopes granted by the EHR for this launch. Null if absent."
+                    },
+                    "fhir_source": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "EHR id (`fhirsrc_*`) the launch originated from. Null if the source is no longer registered."
+                    },
+                    "fhir_base_url": {
+                      "type": "string",
+                      "description": "FHIR base URL (the launch `iss`) the launch originated from."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "ISO 8601 timestamp of when the launch was initiated."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "resource_type",
+                    "status",
+                    "patient",
+                    "encounter",
+                    "fhir_user",
+                    "scope",
+                    "fhir_source",
+                    "fhir_base_url",
+                    "created_at"
+                  ],
+                  "examples": [
+                    {
+                      "id": "9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d",
+                      "resource_type": "launch_context",
+                      "status": "ready",
+                      "patient": "Patient/erXuFYUfucBZaryVksYEcMg3",
+                      "encounter": "Encounter/eMHbz3rPbqUjMqpUgVrhwgB3",
+                      "fhir_user": "Practitioner/eM5CWtq15N0WJeuCet5bJlQ3",
+                      "scope": "launch openid fhirUser patient/Patient.read",
+                      "fhir_source": "fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc",
+                      "fhir_base_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
+                      "created_at": "2026-06-09T14:30:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks": {
+      "post": {
+        "operationId": "api.createWebhook",
+        "summary": "Register a webhook endpoint",
+        "description": "Register an HTTPS endpoint to receive signed event deliveries. The signing `secret` is returned once in this response.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEndpointCreateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpointWithSecret"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ]
+      },
+      "get": {
+        "operationId": "api.listWebhooks",
+        "summary": "List webhook endpoints",
+        "description": "List your organization's webhook endpoints with cursor pagination and an optional `status` filter. Secrets are never returned.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "Maximum number of items to return."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Pagination cursor from `next_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "active",
+                "disabled"
+              ],
+              "type": "string",
+              "description": "Filter by lifecycle status."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resource_type": {
+                      "const": "list",
+                      "description": "Resource type discriminator. Always `\"list\"` for paginated responses."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookEndpoint"
+                      },
+                      "description": "Items on this page."
+                    },
+                    "has_more": {
+                      "type": "boolean",
+                      "description": "`true` when there's at least one more page after this one."
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass as `starting_after` to fetch the next page. `null` when there's no more data."
+                    }
+                  },
+                  "required": [
+                    "resource_type",
+                    "data",
+                    "has_more",
+                    "next_cursor"
+                  ],
+                  "examples": [
+                    {
+                      "resource_type": "list",
+                      "data": [
+                        {
+                          "id": "wh_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+                          "resource_type": "webhook_endpoint",
+                          "url": "https://api.fhirapp.com/medblocks/webhook",
+                          "events": [
+                            "patient_session.completed",
+                            "connection.token_refresh_failed"
+                          ],
+                          "status": "active",
+                          "description": "Production webhook",
+                          "metadata": {},
+                          "api_version": "2026-04-25",
+                          "created_at": "2026-04-25T14:30:00.000Z",
+                          "updated_at": "2026-04-25T14:30:00.000Z"
+                        }
+                      ],
+                      "has_more": false,
+                      "next_cursor": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{id}": {
+      "get": {
+        "operationId": "api.getWebhook",
+        "summary": "Retrieve a webhook endpoint",
+        "description": "Retrieve a single webhook endpoint by its `wh_` id, including its URL, subscribed events, and status. The secret is never returned.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Webhook endpoint id (`wh_*`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "api.updateWebhook",
+        "summary": "Update a webhook endpoint",
+        "description": "Partially update a webhook endpoint's URL, subscribed events, description, or metadata, or re-enable it with `status` active.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Webhook endpoint id (`wh_*`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "events": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "items": {
+                      "anyOf": [
+                        {
+                          "const": "*"
+                        },
+                        {
+                          "enum": [
+                            "patient_session.completed",
+                            "connection.token_refresh_failed",
+                            "records.sync.completed",
+                            "records.sync.failed"
+                          ],
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "description": "Event-type filter. Either `[\"*\"]` (deliver all events) or an explicit list of event types. Unknown types are rejected."
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  "status": {
+                    "enum": [
+                      "active",
+                      "disabled"
+                    ],
+                    "type": "string",
+                    "description": "Lifecycle status. `active` accepts deliveries; `disabled` skips them. Auto-flipped to `disabled` after the delivery worker exhausts retries on this endpoint."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "api.deleteWebhook",
+        "summary": "Delete a webhook endpoint",
+        "description": "Permanently delete a webhook endpoint and its delivery history. Returns a tombstone confirming the deletion.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Webhook endpoint id (`wh_*`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpointDeleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{id}/rotate-secret": {
+      "post": {
+        "operationId": "api.rotateWebhookSecret",
+        "summary": "Rotate the signing secret for a webhook endpoint",
+        "description": "Generate a new signing secret for a webhook endpoint, invalidating the old one. The new secret is returned once in this response.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Webhook endpoint id (`wh_*`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpointWithSecret"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{id}/events": {
+      "get": {
+        "operationId": "api.listWebhookEvents",
+        "summary": "List recent webhook events for an endpoint",
+        "description": "List recent delivery records for one endpoint with cursor pagination and an optional `delivered` filter for the delivery audit.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Webhook endpoint id (`wh_*`)."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "Maximum number of items to return."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Pagination cursor from `next_cursor`."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "delivered",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string",
+              "description": "Filter by delivery state. `true` = only delivered events; `false` = only pending/failed."
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "resource_type": {
+                      "const": "list",
+                      "description": "Resource type discriminator. Always `\"list\"` for paginated responses."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookEvent"
+                      },
+                      "description": "Items on this page."
+                    },
+                    "has_more": {
+                      "type": "boolean",
+                      "description": "`true` when there's at least one more page after this one."
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass as `starting_after` to fetch the next page. `null` when there's no more data."
+                    }
+                  },
+                  "required": [
+                    "resource_type",
+                    "data",
+                    "has_more",
+                    "next_cursor"
+                  ],
+                  "examples": [
+                    {
+                      "resource_type": "list",
+                      "data": [
+                        {
+                          "id": "evt_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+                          "resource_type": "event",
+                          "webhook_endpoint_id": "wh_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+                          "type": "patient_session.completed",
+                          "data": {
+                            "object": {
+                              "id": "ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT",
+                              "resource_type": "patient_session",
+                              "status": "complete",
+                              "patient_id": "user_42"
+                            }
+                          },
+                          "api_version": "2026-04-25",
+                          "attempts": 1,
+                          "next_attempt_at": null,
+                          "delivered_at": "2026-04-25T14:35:02.000Z",
+                          "last_status_code": 200,
+                          "last_response_body": "ok",
+                          "last_redelivered_at": null,
+                          "created_at": "2026-04-25T14:35:00.000Z"
+                        }
+                      ],
+                      "has_more": false,
+                      "next_cursor": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}/redeliver": {
+      "post": {
+        "operationId": "api.redeliverWebhookEvent",
+        "summary": "Manually redeliver a webhook event",
+        "description": "Re-enqueue a webhook event for delivery by its `evt_` id. Limited to one redelivery per event each minute.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Webhook event id (`evt_*`)."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEvent"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            }
+          },
+          "500": {
+            "description": "500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key (mb_sk_live_...)",
+        "description": "Medblocks API key for server-side requests."
+      }
+    },
+    "parameters": {
+      "Version": {
+        "name": "Version",
+        "in": "header",
+        "required": false,
+        "description": "Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.",
+        "example": "2026-04-25",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "headers": {
+      "RetryAfter": {
+        "description": "Whole seconds to wait before retrying a rate-limited request.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "schemas": {
+      "PatientSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public id, prefixed `ps_`."
+          },
+          "resource_type": {
+            "const": "patient_session",
+            "description": "Resource type discriminator. Always `\"patient_session\"` for this resource."
+          },
+          "status": {
+            "enum": [
+              "open",
+              "complete",
+              "expired"
+            ],
+            "type": "string",
+            "description": "Lifecycle state. `open` while the patient is interacting; `complete` after they click Done; `expired` after `expires_at`."
+          },
+          "url": {
+            "type": "string",
+            "description": "Patient-facing URL. Redirect the patient browser to this on patient_session creation."
+          },
+          "patient_id": {
+            "type": "string",
+            "description": "The patient's `patient_id` (developer-provided)."
+          },
+          "connection_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Connection ID (`fhirsrc_*`) when the session was started for one facility. Null when the patient chooses on the Medblocks-hosted page."
+          },
+          "recommended_connection_ids": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Connection IDs (`fhirsrc_*`) shown first on the Medblocks-hosted page. Null when the session was started for one facility."
+          },
+          "return_url": {
+            "type": "string",
+            "description": "Where the patient lands when finishing the flow. Echoes the request value."
+          },
+          "return_button_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Custom label on the \"Done — return to {label}\" button. Null when not set."
+          },
+          "connections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Connection id (`conn_*`). Null for failed auth attempts."
+                },
+                "connection_id": {
+                  "type": "string",
+                  "description": "EHR id (`fhirsrc_*`)."
+                },
+                "status": {
+                  "enum": [
+                    "active",
+                    "failed",
+                    "expired",
+                    "refresh_failed",
+                    "disconnected"
+                  ],
+                  "type": "string",
+                  "description": "Connection lifecycle state. `active` = data flowing; `disconnected` = access was revoked; everything else needs patient remediation."
+                },
+                "failure_code": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Stable failure code when `status=failed`. Null otherwise."
+                },
+                "failure_at": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "ISO 8601 timestamp of the failure when `status=failed`. Null otherwise."
+                },
+                "created_at": {
+                  "type": "string",
+                  "description": "ISO 8601 timestamp of when this connection was created."
+                }
+              },
+              "required": [
+                "id",
+                "connection_id",
+                "status",
+                "failure_code",
+                "failure_at",
+                "created_at"
+              ]
+            },
+            "description": "Connections created during this patient_session — including failed attempts. Empty when no EHR has been connected yet."
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "ISO 8601 timestamp at which the patient_session token becomes invalid."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Developer-supplied metadata key/value pairs."
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601 timestamp of when the patient_session was created."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "status",
+          "url",
+          "patient_id",
+          "connection_id",
+          "recommended_connection_ids",
+          "return_url",
+          "return_button_label",
+          "connections",
+          "expires_at",
+          "metadata",
+          "created_at"
+        ],
+        "examples": [
+          {
+            "id": "ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT",
+            "resource_type": "patient_session",
+            "status": "open",
+            "url": "https://app.medblocks.com/c/9c9b6f7a8e4f4a3b9c1e6f3a2d8b7c4d",
+            "patient_id": "user_42",
+            "connection_id": null,
+            "recommended_connection_ids": [
+              "fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc",
+              "fhirsrc_0a9Ea55aR4u7HaWMyFBN8wcc",
+              "fhirsrc_lcvXRHLSSI2WK9Prrt5Qggcc"
+            ],
+            "return_url": "https://app.example.com/connected",
+            "return_button_label": "Acme Health",
+            "connections": [],
+            "expires_at": "2026-04-25T15:00:00.000Z",
+            "metadata": {
+              "signup_source": "checkout"
+            },
+            "created_at": "2026-04-25T14:30:00.000Z"
+          }
+        ]
+      },
+      "Patient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Your developer-provided patient identifier. Use this in URL paths."
+          },
+          "resource_type": {
+            "const": "patient",
+            "description": "Resource type discriminator. Always `\"patient\"`."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Patient's email. Null if never supplied."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Patient's display name. Null if never set."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Developer-supplied metadata key/value pairs."
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601 timestamp of when the patient was created."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "email",
+          "name",
+          "metadata",
+          "created_at"
+        ],
+        "examples": [
+          {
+            "id": "user_42",
+            "resource_type": "patient",
+            "email": "jane@example.com",
+            "name": "Jane Doe",
+            "metadata": {
+              "plan": "premium"
+            },
+            "created_at": "2026-04-25T14:30:00.000Z"
+          }
+        ]
+      },
+      "PatientDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Your developer-provided patient identifier. Use this in URL paths."
+          },
+          "resource_type": {
+            "const": "patient",
+            "description": "Resource type discriminator. Always `\"patient\"`."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Patient's email. Null if never supplied."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Patient's display name. Null if never set."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Developer-supplied metadata key/value pairs."
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601 timestamp of when the patient was created."
+          },
+          "connections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "resource_type": {
+                  "const": "connection"
+                },
+                "patient_session_id": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "connection_id": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "active",
+                    "failed",
+                    "expired",
+                    "refresh_failed",
+                    "disconnected"
+                  ],
+                  "type": "string"
+                },
+                "scopes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "failure_code": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "failure_at": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "created_at": {
+                  "type": "string"
+                },
+                "updated_at": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "resource_type",
+                "patient_session_id",
+                "connection_id",
+                "status",
+                "scopes",
+                "failure_code",
+                "failure_at",
+                "created_at",
+                "updated_at"
+              ]
+            },
+            "description": "All connections for this patient in this org, most-recent first. Only included on GET /patients/{id}."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "email",
+          "name",
+          "metadata",
+          "created_at",
+          "connections"
+        ],
+        "examples": [
+          {
+            "id": "user_42",
+            "resource_type": "patient",
+            "email": "jane@example.com",
+            "name": "Jane Doe",
+            "metadata": {
+              "plan": "premium"
+            },
+            "created_at": "2026-04-25T14:30:00.000Z",
+            "connections": [
+              {
+                "id": "conn_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+                "resource_type": "connection",
+                "patient_session_id": "ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT",
+                "connection_id": "fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc",
+                "status": "active",
+                "scopes": [
+                  "patient/*.read",
+                  "offline_access"
+                ],
+                "failure_code": null,
+                "failure_at": null,
+                "created_at": "2026-04-25T14:35:00.000Z",
+                "updated_at": "2026-04-25T14:35:00.000Z"
+              }
+            ]
+          }
+        ]
+      },
+      "PatientDeleted": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the deleted patient."
+          },
+          "resource_type": {
+            "const": "patient"
+          },
+          "deleted": {
+            "const": true,
+            "description": "Always `true` for a successful delete."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "deleted"
+        ],
+        "examples": [
+          {
+            "id": "user_42",
+            "resource_type": "patient",
+            "deleted": true
+          }
+        ]
+      },
+      "ConnectionDisconnected": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the disconnected connection."
+          },
+          "resource_type": {
+            "const": "connection"
+          },
+          "disconnected": {
+            "const": true,
+            "description": "Always `true` for a successful disconnect."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "disconnected"
+        ],
+        "examples": [
+          {
+            "id": "conn_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "resource_type": "connection",
+            "disconnected": true
+          }
+        ]
+      },
+      "PatientRecords": {
+        "type": "object",
+        "properties": {
+          "resource_type": {
+            "const": "list"
+          },
+          "patient_id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "fhirsrc id of the source EHR, resolvable via the FHIR sources API"
+                },
+                "resource": {
+                  "type": "object",
+                  "properties": {
+                    "resourceType": {
+                      "type": "string",
+                      "description": "FHIR resource type, e.g. `Observation`."
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "The source EHR's native logical id."
+                    }
+                  },
+                  "required": [
+                    "resourceType"
+                  ],
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "source",
+                "resource"
+              ]
+            }
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "resource_type",
+          "patient_id",
+          "data",
+          "has_more",
+          "next_cursor",
+          "previous_cursor"
+        ],
+        "examples": [
+          {
+            "resource_type": "list",
+            "patient_id": "user_42",
+            "data": [
+              {
+                "source": "fhirsrc_SMsb6YLMQLal1qm9AbdSPAcc",
+                "resource": {
+                  "resourceType": "Observation",
+                  "id": "bmi-1",
+                  "status": "final"
+                }
+              }
+            ],
+            "has_more": true,
+            "next_cursor": "aB3xK9mQp2Lz",
+            "previous_cursor": null
+          }
+        ]
+      },
+      "FhirSource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public id, prefixed `fhirsrc_`. The raw `fhir_base_url` is also accepted as an alternate identifier."
+          },
+          "resource_type": {
+            "const": "fhir_source",
+            "description": "Resource type discriminator. Always `\"fhir_source\"` for this resource."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the EHR (e.g. \"Epic MyChart\")."
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Vendor type - `epic`, `cerner`, `athena`, `meditech`, etc. Null when unknown."
+          },
+          "fhir_base_url": {
+            "type": "string",
+            "description": "FHIR R4 base URL. Stable, unique identifier - usable in place of `id` on Session creation."
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Vendor logo URL for use in your UI. Null when not yet curated."
+          },
+          "portal_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Patient-facing portal URL - useful for help/support links. Null when not curated."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "name",
+          "type",
+          "fhir_base_url",
+          "logo_url",
+          "portal_url"
+        ],
+        "examples": [
+          {
+            "id": "fhirsrc_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "resource_type": "fhir_source",
+            "name": "Epic MyChart",
+            "type": "epic",
+            "fhir_base_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
+            "logo_url": "https://cdn.medblocks.com/ehr-logos/epic.svg",
+            "portal_url": "https://mychart.epic.com"
+          }
+        ]
+      },
+      "WebhookEndpoint": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public id, prefixed `wh_`."
+          },
+          "resource_type": {
+            "const": "webhook_endpoint",
+            "description": "Resource type discriminator. Always `\"webhook_endpoint\"`."
+          },
+          "url": {
+            "type": "string",
+            "description": "Your HTTPS endpoint URL."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event-type filter. `[\"*\"]` means all events; otherwise the list of subscribed event types."
+          },
+          "status": {
+            "enum": [
+              "active",
+              "disabled"
+            ],
+            "type": "string",
+            "description": "Lifecycle status. `active` accepts deliveries; `disabled` skips them. Auto-flipped to `disabled` after the delivery worker exhausts retries on this endpoint."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Human-readable label. Null if never set."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Developer-supplied metadata key/value pairs."
+          },
+          "api_version": {
+            "type": "string",
+            "description": "API version pinned at registration time. Immutable. Copied onto every `webhook_event.api_version` this endpoint fires."
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "url",
+          "events",
+          "status",
+          "description",
+          "metadata",
+          "api_version",
+          "created_at",
+          "updated_at"
+        ],
+        "examples": [
+          {
+            "id": "wh_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "resource_type": "webhook_endpoint",
+            "url": "https://api.fhirapp.com/medblocks/webhook",
+            "events": [
+              "patient_session.completed",
+              "connection.token_refresh_failed"
+            ],
+            "status": "active",
+            "description": "Production webhook",
+            "metadata": {},
+            "api_version": "2026-04-25",
+            "created_at": "2026-04-25T14:30:00.000Z",
+            "updated_at": "2026-04-25T14:30:00.000Z"
+          }
+        ]
+      },
+      "WebhookEndpointWithSecret": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public id, prefixed `wh_`."
+          },
+          "resource_type": {
+            "const": "webhook_endpoint",
+            "description": "Resource type discriminator. Always `\"webhook_endpoint\"`."
+          },
+          "url": {
+            "type": "string",
+            "description": "Your HTTPS endpoint URL."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event-type filter. `[\"*\"]` means all events; otherwise the list of subscribed event types."
+          },
+          "status": {
+            "enum": [
+              "active",
+              "disabled"
+            ],
+            "type": "string",
+            "description": "Lifecycle status. `active` accepts deliveries; `disabled` skips them. Auto-flipped to `disabled` after the delivery worker exhausts retries on this endpoint."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Human-readable label. Null if never set."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Developer-supplied metadata key/value pairs."
+          },
+          "api_version": {
+            "type": "string",
+            "description": "API version pinned at registration time. Immutable. Copied onto every `webhook_event.api_version` this endpoint fires."
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string",
+            "description": "The signing secret (`whsec_*`). Returned ONCE on create and rotate-secret. Store it server-side; you cannot retrieve it later."
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "url",
+          "events",
+          "status",
+          "description",
+          "metadata",
+          "api_version",
+          "created_at",
+          "updated_at",
+          "secret"
+        ],
+        "examples": [
+          {
+            "id": "wh_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "resource_type": "webhook_endpoint",
+            "url": "https://api.fhirapp.com/medblocks/webhook",
+            "events": [
+              "patient_session.completed",
+              "connection.token_refresh_failed"
+            ],
+            "status": "active",
+            "description": "Production webhook",
+            "metadata": {},
+            "api_version": "2026-04-25",
+            "created_at": "2026-04-25T14:30:00.000Z",
+            "updated_at": "2026-04-25T14:30:00.000Z",
+            "secret": "whsec_01J9YR9N3X4VZ6P2K5RH7M3LMPabcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "WebhookEndpointDeleted": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resource_type": {
+            "const": "webhook_endpoint"
+          },
+          "deleted": {
+            "const": true
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "deleted"
+        ],
+        "examples": [
+          {
+            "id": "wh_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "resource_type": "webhook_endpoint",
+            "deleted": true
+          }
+        ]
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public id, prefixed `evt_`."
+          },
+          "resource_type": {
+            "const": "event"
+          },
+          "webhook_endpoint_id": {
+            "type": "string",
+            "description": "The `wh_*` endpoint this delivery targets."
+          },
+          "type": {
+            "enum": [
+              "patient_session.completed",
+              "connection.token_refresh_failed",
+              "records.sync.completed",
+              "records.sync.failed"
+            ],
+            "type": "string",
+            "description": "Event type discriminator."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "description": "Event-specific payload. Shape depends on `type` — see the SDK's typed `WebhookEvent` union for the discriminated shape."
+              }
+            }
+          },
+          "api_version": {
+            "type": "string",
+            "description": "API version pinned at the endpoint at fire time."
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Number of delivery attempts made so far (incl. the current one)."
+          },
+          "next_attempt_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 8601 timestamp of the next scheduled retry. Null when terminal (delivered or exhausted)."
+          },
+          "delivered_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 8601 timestamp of successful delivery. Null until a 2xx response is received."
+          },
+          "last_status_code": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "HTTP status code from the most recent attempt."
+          },
+          "last_response_body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response body from the most recent attempt, truncated to 4 KB."
+          },
+          "last_redelivered_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 8601 timestamp of the most recent manual redelivery. Null if never redelivered."
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "resource_type",
+          "webhook_endpoint_id",
+          "type",
+          "data",
+          "api_version",
+          "attempts",
+          "next_attempt_at",
+          "delivered_at",
+          "last_status_code",
+          "last_response_body",
+          "last_redelivered_at",
+          "created_at"
+        ],
+        "examples": [
+          {
+            "id": "evt_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "resource_type": "event",
+            "webhook_endpoint_id": "wh_01J9YR9N3X4VZ6P2K5RH7M3LMP",
+            "type": "patient_session.completed",
+            "data": {
+              "object": {
+                "id": "ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT",
+                "resource_type": "patient_session",
+                "status": "complete",
+                "patient_id": "user_42"
+              }
+            },
+            "api_version": "2026-04-25",
+            "attempts": 1,
+            "next_attempt_at": null,
+            "delivered_at": "2026-04-25T14:35:02.000Z",
+            "last_status_code": 200,
+            "last_response_body": "ok",
+            "last_redelivered_at": null,
+            "created_at": "2026-04-25T14:35:00.000Z"
+          }
+        ]
+      },
+      "PatientSessionInitInput": {
+        "type": "object",
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Your stable identifier for this patient."
+          },
+          "patient_email": {
+            "type": "string",
+            "format": "email",
+            "description": "Patient email to store or update."
+          },
+          "patient_name": {
+            "type": "string",
+            "description": "Patient display name to store or update."
+          },
+          "connection_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Connection ID from `/connections`. When present, the patient goes straight to that facility's patient portal. Mutually exclusive with `recommended_connection_ids`."
+          },
+          "recommended_connection_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Connection IDs to show first on the Medblocks-hosted page. Mutually exclusive with `connection_id`."
+          },
+          "return_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to redirect after the patient session."
+          },
+          "return_button_label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Text shown on the patient-facing completion button."
+          },
+          "expires_in": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 86400,
+            "description": "Seconds until the patient_session token expires. Default 1800 (30 min). Max 86400 (24h)."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Additional metadata returned with the patient session."
+          }
+        },
+        "required": [
+          "patient_id",
+          "return_url"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "patient_id": "user_42",
+            "patient_email": "jane@example.com",
+            "patient_name": "Jane Doe",
+            "recommended_connection_ids": [
+              "fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc",
+              "fhirsrc_0a9Ea55aR4u7HaWMyFBN8wcc",
+              "fhirsrc_lcvXRHLSSI2WK9Prrt5Qggcc"
+            ],
+            "return_url": "https://app.example.com/connected",
+            "return_button_label": "Acme Health",
+            "expires_in": 1800,
+            "metadata": {
+              "signup_source": "checkout"
+            }
+          }
+        ]
+      },
+      "PatientCreateInput": {
+        "type": "object",
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Your stable identifier for this patient. Unique within your organization."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Patient email for display and matching in your app."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Patient display name."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Additional metadata returned with the Patient."
+          }
+        },
+        "required": [
+          "patient_id"
+        ],
+        "examples": [
+          {
+            "patient_id": "user_42",
+            "email": "jane@example.com",
+            "name": "Jane Doe",
+            "metadata": {
+              "plan": "premium"
+            }
+          }
+        ]
+      },
+      "PatientReplaceInput": {
+        "type": "object",
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Must match the `{id}` URL param. 400 if mismatched. Immutable."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New email. Omit or pass `null` to clear."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New name. Omit or pass `null` to clear (UI falls back to the patient_id)."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "New metadata. Omit to clear (replaced with `{}`)."
+          }
+        },
+        "required": [
+          "patient_id"
+        ],
+        "examples": [
+          {
+            "patient_id": "user_42",
+            "email": "jane@example.com",
+            "name": "Jane Q. Doe",
+            "metadata": {
+              "plan": "premium",
+              "source": "checkout"
+            }
+          }
+        ]
+      },
+      "WebhookEndpointCreateInput": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only."
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "anyOf": [
+                {
+                  "const": "*"
+                },
+                {
+                  "enum": [
+                    "patient_session.completed",
+                    "connection.token_refresh_failed",
+                    "records.sync.completed",
+                    "records.sync.failed"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Event-type filter. Either `[\"*\"]` (deliver all events) or an explicit list of event types. Unknown types are rejected."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Human-readable label, visible in the dashboard."
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Up to 50 keys of arbitrary developer metadata. Echoed back on every read."
+          }
+        },
+        "required": [
+          "url",
+          "events"
+        ],
+        "examples": [
+          {
+            "url": "https://api.fhirapp.com/medblocks/webhook",
+            "events": [
+              "patient_session.completed",
+              "records.sync.completed"
+            ],
+            "description": "Production webhook",
+            "metadata": {}
+          }
+        ]
+      },
+      "WebhookEndpointUpdateInput": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "anyOf": [
+                {
+                  "const": "*"
+                },
+                {
+                  "enum": [
+                    "patient_session.completed",
+                    "connection.token_refresh_failed",
+                    "records.sync.completed",
+                    "records.sync.failed"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Event-type filter. Either `[\"*\"]` (deliver all events) or an explicit list of event types. Unknown types are rejected."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "status": {
+            "enum": [
+              "active",
+              "disabled"
+            ],
+            "type": "string",
+            "description": "Lifecycle status. `active` accepts deliveries; `disabled` skips them. Auto-flipped to `disabled` after the delivery worker exhausts retries on this endpoint."
+          }
+        },
+        "examples": [
+          {
+            "events": [
+              "patient_session.completed",
+              "records.sync.completed",
+              "records.sync.failed"
+            ],
+            "status": "active"
+          }
+        ]
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Error category (e.g. authentication_error, permission_error, conflict_error)."
+              },
+              "code": {
+                "type": "string",
+                "description": "Stable code within the type (e.g. invalid_api_key, external_id_already_exists)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error message."
+              },
+              "param": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Affected request parameter, if applicable."
+              },
+              "doc_url": {
+                "type": "string",
+                "description": "Link to the API errors reference."
+              },
+              "request_id": {
+                "type": "string",
+                "description": "Correlation id - include in support tickets. Echoes the `X-Request-Id` response header."
+              }
+            },
+            "required": [
+              "type",
+              "code",
+              "message",
+              "param",
+              "doc_url",
+              "request_id"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "examples": [
+          {
+            "error": {
+              "type": "authentication_error",
+              "code": "invalid_api_key",
+              "message": "API key invalid",
+              "param": null,
+              "doc_url": "https://medblocks.com/docs/reference/errors",
+              "request_id": "9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

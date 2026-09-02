@@ -1,0 +1,129 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Medblocks Platform API
+  version: 1.0.0
+x-provenance:
+  generated: '2026-09-02'
+  method: generated
+  source: openapi/medblocks-platform-openapi.json
+  note: >-
+    Non-destructive Overlay over the provider's own OpenAPI 3.1.1 document. The upstream
+    document declares no tags at all — every one of its 22 operations is untagged — and
+    carries no info.contact, no externalDocs and no per-operation documentation links, even
+    though the docs site groups the same operations into System, Patients, Connections,
+    Patient sessions and Webhooks. This overlay adds those groupings and links from the
+    provider's own published documentation. It does not alter any path, schema, parameter or
+    response. Original saved verbatim; never mutated.
+actions:
+- target: $.info
+  description: Add the contact and licence links the provider publishes on its own site.
+  update:
+    contact:
+      name: Medblocks
+      url: https://medblocks.com/contact
+      email: support@medblocks.com
+- target: $
+  description: Declare the tag groups the provider's own API reference uses.
+  update:
+    tags:
+    - name: System
+      description: Health and platform availability endpoints.
+    - name: Patients
+      description: Create, update, retrieve, and delete patients.
+    - name: Connections
+      description: Inspect configured EHR/FHIR source connections.
+    - name: Patient sessions
+      description: Create and inspect patient sessions.
+    - name: Webhooks
+      description: Register, rotate, and inspect webhook endpoints and deliveries.
+    externalDocs:
+      description: Medblocks Platform documentation
+      url: https://medblocks.com/docs
+- target: $.paths['/health'].get
+  update:
+    tags: [System]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/health}
+- target: $.paths['/patients'].get
+  update:
+    tags: [Patients]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/list-patients}
+- target: $.paths['/patients'].post
+  update:
+    tags: [Patients]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/create-patient}
+- target: $.paths['/patients/{id}'].get
+  update:
+    tags: [Patients]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/get-patient}
+- target: $.paths['/patients/{id}'].put
+  update:
+    tags: [Patients]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/update-patient}
+- target: $.paths['/patients/{id}'].delete
+  update:
+    tags: [Patients]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/delete-patient}
+- target: $.paths['/patients/{id}/records'].get
+  update:
+    tags: [Patients]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/get-patient-records}
+- target: $.paths['/patients/{id}/connections/{connection_id}'].delete
+  update:
+    tags: [Connections]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/disconnect-patient-connection}
+- target: $.paths['/patients/{id}/patient-sessions'].get
+  update:
+    tags: [Patient sessions]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/list-patient-sessions-for-patient}
+- target: $.paths['/connections'].get
+  update:
+    tags: [Connections]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/list-fhir-sources}
+- target: $.paths['/connections/{id}'].get
+  update:
+    tags: [Connections]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/get-fhir-source}
+- target: $.paths['/patient-sessions'].post
+  update:
+    tags: [Patient sessions]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/init-patient-session}
+- target: $.paths['/patient-sessions/{id}'].get
+  update:
+    tags: [Patient sessions]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/retrieve-patient-session}
+- target: $.paths['/launch-contexts/{id}'].get
+  update:
+    tags: [Patient sessions]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/retrieve-launch-context}
+- target: $.paths['/webhooks'].get
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/list-webhooks}
+- target: $.paths['/webhooks'].post
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/create-webhook}
+- target: $.paths['/webhooks/{id}'].get
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/get-webhook}
+- target: $.paths['/webhooks/{id}'].patch
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/update-webhook}
+- target: $.paths['/webhooks/{id}'].delete
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/delete-webhook}
+- target: $.paths['/webhooks/{id}/rotate-secret'].post
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/rotate-webhook-secret}
+- target: $.paths['/webhooks/{id}/events'].get
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/reference/api/list-webhook-events}
+- target: $.paths['/events/{id}/redeliver'].post
+  update:
+    tags: [Webhooks]
+    externalDocs: {url: https://medblocks.com/docs/webhooks/redelivery}

@@ -1,23 +1,159 @@
 aid: medblocks
 name: Medblocks
-description: 'Medblocks is a company surfaced via the API Evangelist harvest backlog (source: openehr-coalition)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  Medblocks is a health-data integration platform that gives applications a single API for a
+  patient's longitudinal health record. Its Medblocks Platform API brokers patient-mediated
+  connections to EHRs, payers and health information networks (Epic, Cerner/Oracle Health,
+  athenahealth, eClinicalWorks, Meditech, CMS Blue Button, UnitedHealthcare and wearables),
+  normalizes what comes back into FHIR R4, and delivers it through cursor-paginated record reads,
+  signed webhooks, and export destinations such as a customer FHIR server or S3. It also ships
+  clinician-workflow surfaces (SMART App Launch, CDS Hooks), backend/bulk services, a hosted
+  Model Context Protocol server for AI assistants, a TypeScript SDK, and the open-source
+  medblocks-ui web-component library and openFHIR openEHR-to-FHIR mapping engine. Founded by
+  Sidharth Ramesh, Medblocks also runs FHIR and openEHR training bootcamps.
 url: https://raw.githubusercontent.com/api-evangelist/medblocks/refs/heads/main/apis.yml
+image: https://medblocks.com/_astro/f266b99b-2c21-44ba-b819-c3911c15a61b.CZlakJ61_1CWv2n.jpeg
 x-type: company
 x-source: harvest:openehr-coalition
-x-tier: stub
-x-tier-reason: harvest
 specificationVersion: '0.20'
 created: '2026-09-02'
 modified: '2026-09-02'
 tags:
+- Health
+- Healthcare
+- FHIR
+- openEHR
+- Interoperability
+- Electronic Health Records
+- Patient Access
+- Health Data
+- SMART on FHIR
+- Webhooks
+- Model Context Protocol
 - Company
-apis: []
+apis:
+- aid: medblocks-platform-api
+  name: Medblocks Platform API
+  description: >-
+    Server-to-server developer API for the Medblocks Platform. Create patients, start hosted
+    PatientSessions that authorize a patient against one or more EHRs, inspect the resulting
+    connections, read unified FHIR records with cursor pagination, and register/rotate/inspect
+    webhook endpoints and deliveries. Bearer-authenticated with a workspace API key
+    (mb_sk_live_ / mb_sk_sbx_), date-pinned via an optional Version header, and every non-2xx
+    response carries a typed error envelope.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - FHIR
+  - Patient Access
+  - Webhooks
+  - Health Data
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-platform-openapi.json
+  - type: Overlay
+    url: overlays/medblocks-platform-overlay.yaml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks-public-site-api
+  name: Medblocks Public Site API
+  description: >-
+    A narrow, unauthenticated, read-only API that medblocks.com publishes for third-party and
+    automated use: training-certificate verification plus the machine-readable blog RSS feed and
+    sitemap index. Described by an OpenAPI 3.1 document served at the site root and advertised
+    through the site's RFC 9727 /.well-known/api-catalog linkset.
+  humanURL: https://medblocks.com/docs
+  baseURL: https://medblocks.com
+  tags:
+  - Feeds
+  - Certificates
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-public-site-openapi.json
+  - type: Overlay
+    url: overlays/medblocks-public-site-overlay.yaml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: DomainSecurity
+  url: security/medblocks-domain-security.yml
+- type: Authentication
+  url: authentication/medblocks-authentication.yml
 - type: Website
   url: https://medblocks.com/
+- type: DeveloperPortal
+  url: https://medblocks.com/docs
+- type: Documentation
+  url: https://medblocks.com/docs
+- type: APIReference
+  url: https://medblocks.com/docs/reference/api
+- type: GettingStarted
+  url: https://medblocks.com/docs/quickstarts
+- type: Support
+  url: https://medblocks.com/contact
+- type: Community
+  url: https://medblocks.com/community
+- type: Blog
+  url: https://medblocks.com/blog
+- type: GitHubOrganization
+  url: https://github.com/medblocks
+- type: Pricing
+  url: https://medblocks.com/docs/billing
+- type: SignUp
+  url: https://app.medblocks.com/
+- type: TermsOfService
+  url: https://medblocks.com/terms
+- type: PrivacyPolicy
+  url: https://medblocks.com/privacy-policy
+- type: Packages
+  url: packages/medblocks-packages.yml
+- type: SDKs
+  url: packages/medblocks-packages.yml
+- type: WellKnown
+  url: well-known/medblocks-well-known.yml
+- type: APICatalog
+  url: well-known/medblocks-api-catalog.json
+- type: MCPServer
+  url: mcp/medblocks-mcp.yml
+- type: ToolCrosswalk
+  url: mcp/medblocks-tool-crosswalk.yml
+- type: LLMsTxt
+  url: llms/medblocks-llms.txt
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Conformance
+  url: conformance/medblocks-conformance.yml
+- type: Compliance
+  url: conformance/medblocks-conformance.yml
+- type: ErrorCatalog
+  url: errors/medblocks-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/medblocks-lifecycle.yml
+- type: OAuthScopes
+  url: scopes/medblocks-scopes.yml
+- type: Conventions
+  url: conventions/medblocks-conventions.yml
+- type: ChangeLog
+  url: changelog/medblocks-changelog.yml
+- type: Sandbox
+  url: sandbox/medblocks-sandbox.yml
+- type: Components
+  url: components/medblocks-components.yml
+- type: DataModel
+  url: data-model/medblocks-data-model.yml
+- type: Webhooks
+  url: asyncapi/medblocks-webhooks.yml
+- type: Plans
+  url: plans/medblocks-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/medblocks-rate-limits.yml
+x-enrichment:
+  date: '2026-09-02'
+  status: enriched
+  artifacts_added: 33
+  pass: local-v1

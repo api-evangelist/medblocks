@@ -1,0 +1,115 @@
+generated: '2026-09-02'
+method: searched
+source: https://medblocks.com/docs/mcp
+name: medblocks-platform
+title: Medblocks Platform MCP Server
+description: >-
+  Hosted, remote MCP server that gives an AI assistant access to a Medblocks Platform
+  workspace: orient in the workspace, search health systems, start a patient-portal
+  connection session, read the FHIR records that come back, and disconnect or delete.
+deployment:
+  mode: remote
+  endpoint: https://app.medblocks.com/mcp
+  auth: oauth
+  verified: probed
+  note: >-
+    POST tools/list to https://app.medblocks.com/mcp with Accept application/json,
+    text/event-stream returned HTTP 401 with
+    WWW-Authenticate: Bearer resource_metadata="https://app.medblocks.com/.well-known/oauth-protected-resource/mcp",
+    scope="openid profile email offline_access patients:read patients:write
+    patient_sessions:read patient_sessions:write connections:read fhir:read".
+    That is a conformant RFC 9728 challenge, so the endpoint is live and the live tool
+    schemas require an authenticated introspection. Developer clients may substitute an
+    mb_sk_ API key as a bearer token instead of the OAuth flow.
+x-evidence:
+  fetched: '2026-09-02'
+  url: https://app.medblocks.com/mcp
+  method: POST
+  body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+  http_status: 401
+  www_authenticate: >-
+    Bearer resource_metadata="https://app.medblocks.com/.well-known/oauth-protected-resource/mcp",
+    scope="openid profile email offline_access patients:read patients:write
+    patient_sessions:read patient_sessions:write connections:read fhir:read"
+transport: streamable-http
+clients_documented:
+- name: Claude Code
+  install: claude mcp add --transport http medblocks https://app.medblocks.com/mcp
+- name: Codex
+  install: codex mcp add medblocks --url https://app.medblocks.com/mcp --oauth-resource https://app.medblocks.com/mcp
+  note: the --oauth-resource flag is required; the server declines a token not bound to this resource
+- name: claude.ai / Cowork
+  install: Settings > Connectors > Add custom connector, URL https://app.medblocks.com/mcp
+- name: ChatGPT
+  install: Developer mode > Plugins > New plugin, Server URL https://app.medblocks.com/mcp, Authentication OAuth
+consent:
+  model: >-
+    An interactive OAuth user is shown a consent screen with one tick box per capability, all
+    ticked by default, and may grant fewer permissions than the assistant requested.
+    Identity (name, email) and workspace visibility are granted without a prompt.
+  permissions:
+  - label: Connect your healthcare facilities
+    allows: search named hospitals, clinics and insurers, connect to them, and bring records into the workspace
+    default: on
+  - label: Read your health records
+    allows: read the health records already in the workspace
+    default: on
+  - label: Manage people and delete data
+    allows: add or remove people, disconnect facilities, delete records
+    default: on
+    note: destructive; the docs advise leaving it off unless needed
+  revocation: >-
+    Dashboard > Settings > MCP server revokes the assistant; already-issued access expires
+    within an hour.
+tools:
+  count: 10
+  status: published
+  schemas: auth-gated
+  note: >-
+    Names and descriptions are taken verbatim from the provider's own MCP documentation and
+    from the provider-published agent skill (skills/medblocks-mcp.md). Input schemas were not
+    captured because tools/list requires an authenticated token. The docs state every tool
+    call writes a private audit entry, which is why even lookup tools declare that they change
+    state in their MCP metadata.
+  list:
+  - name: get_workspace_overview
+    description: Reports who you are, summarizes the selected workspace, and lists health systems previously connected there.
+    category: orientation
+  - name: list_workspaces
+    description: Lists every workspace you can use, labeled production or sandbox.
+    category: orientation
+  - name: list_people
+    description: Lists everyone set up in your workspace.
+    category: orientation
+  - name: search_health_systems
+    description: Searches hospitals, clinics, and insurers by name.
+    category: discovery
+  - name: choose_health_systems
+    description: Opens the in-chat panel with every matching facility so you can make the selection.
+    category: discovery
+  - name: connect_health_system
+    description: >-
+      Creates a private connection session and secure link after you select one or more
+      facilities. Reuses an existing person with the same name or creates a new person from
+      the real name you provide.
+    category: connect
+  - name: check_connection_status
+    description: Checks how a connection is going, for a single session or for a whole person.
+    category: connect
+  - name: get_health_records
+    description: Reads a person's medical records from their connected health systems.
+    category: read
+  - name: disconnect_health_system
+    description: Stops retrieving records from one connected health system and revokes access.
+    category: destructive
+    destructive: true
+  - name: delete_person
+    description: Permanently removes a person and all their retrieved records from the workspace.
+    category: destructive
+    destructive: true
+skills_over_mcp:
+  published: true
+  note: >-
+    The server publishes the Medblocks agent skill through the draft Skills-over-MCP
+    extension; ChatGPT reads the catalog on Scan Tools. Clients without the extension see
+    ordinary tools and resources.

@@ -1,0 +1,122 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/webhooks, https://medblocks.com/docs/webhooks/events,
+  https://medblocks.com/docs/webhooks/signatures,
+  https://medblocks.com/docs/webhooks/retries-and-disable,
+  https://medblocks.com/docs/webhooks/managing-endpoints,
+  https://medblocks.com/docs/webhooks/redelivery, openapi/medblocks-platform-openapi.json
+kind: webhooks
+asyncapi_published: false
+asyncapi_note: >-
+  Medblocks publishes NO AsyncAPI document. The event surface is real and thoroughly documented
+  in prose plus a management API, so it is captured here as a webhook catalog rather than
+  fabricated into an AsyncAPI document.
+asyncapi_probes:
+- {url: 'https://medblocks.com/asyncapi.json', status: 404}
+- {url: 'https://medblocks.com/asyncapi.yaml', status: 404}
+- {url: 'https://medblocks.com/docs/asyncapi.json', status: 404}
+- {url: 'https://app.medblocks.com/asyncapi.json', status: 200, note: 'SPA catch-all HTML shell, not a document'}
+- {url: 'https://api.github.com/search/code?q=org:medblocks+filename:asyncapi', status: 200, result: 0 matches}
+delivery:
+  transport: HTTPS POST
+  content_type: application/json
+  receiver_timeout: 5s
+  success: any 2xx
+  ordering: not guaranteed
+  at_least_once: true
+  dedupe_key: event.id
+  dedupe_ttl_suggested_days: 90
+  note: >-
+    The docs state the same event.id may be delivered more than once and that receivers must be
+    idempotent. Note this is a requirement on the receiver — the Medblocks API itself offers no
+    idempotency key on its write path. See conventions/medblocks-conventions.yml.
+envelope:
+  fields:
+  - {name: id, type: string, note: 'prefixed evt_*; dedupe by this'}
+  - {name: object, type: string, const: event}
+  - {name: type, type: enum, note: one of the four event types below}
+  - {name: api_version, type: string, note: the version pinned at endpoint registration}
+  - {name: created_at, type: ISO 8601}
+  - {name: data.object, type: object, note: per-type payload}
+  example:
+    id: evt_01J9YR9N3X4VZ6P2K5RH7M3LMP
+    object: event
+    type: patient_session.completed
+    api_version: '2026-04-25'
+    created_at: '2026-04-25T14:35:00.000Z'
+signature:
+  header: Medblocks-Signature
+  format: t=<unix seconds>,v1=<hex>
+  algorithm: HMAC-SHA256 over "${t}.${rawBody}"
+  comparison: constant-time
+  tolerance_window: 5 minutes (default)
+  sdk_verifier: Medblocks.webhooks.constructEvent(rawBody, signature, secret)
+  error_type: MedblocksSignatureError
+  raw_body_required: true
+  raw_body_note: >-
+    The signature is computed over the raw body. Any framework that parses JSON before you see
+    it will re-serialize and break the HMAC on a genuine payload. Put the webhook route before
+    any global JSON parser.
+  secret_rotation: POST /webhooks/{id}/rotate-secret (api.rotateWebhookSecret)
+event_count: 4
+events:
+- type: patient_session.completed
+  fires_when: >-
+    A patient finishes the hosted flow — whether they connected an EHR, failed authorization,
+    or just clicked Done.
+  payload: the full PatientSession
+  payload_fields: [id, status, patient_id, connection_id, recommended_connection_ids, connections, metadata]
+  use_for: Update the connected UI, kick off downstream onboarding, send a welcome email.
+- type: connection.token_refresh_failed
+  fires_when: >-
+    A previously active connection's refresh token stops working; the EHR rejected the refresh
+    and Medblocks cleared the stored tokens. The patient must reconnect.
+  payload: the single PatientSessionConnection that failed
+  payload_fields: [id, connection_id, status, failure_code, failure_at, created_at]
+  use_for: Prompt the patient to start a new patient session against the same source.
+- type: records.sync.completed
+  fires_when: A background pull for one (patient, connection) pair finishes successfully and new records have landed.
+  payload_fields: [resource_type, patient_id, connection_id, total, errors, duration_ms]
+  use_for: Trigger downstream processing, refresh dashboards, signal a workflow that the patient is ready.
+- type: records.sync.failed
+  fires_when: A background pull errored without recovering.
+  payload_fields: [resource_type, patient_id, connection_id, error_message]
+  use_for: Page on-call, surface the failure in an ops dashboard.
+subscription:
+  wildcard: '"*" delivers all four'
+  max_types_per_endpoint: 4
+  management_operations:
+  - api.createWebhook
+  - api.listWebhooks
+  - api.getWebhook
+  - api.updateWebhook
+  - api.deleteWebhook
+  - api.rotateWebhookSecret
+  - api.listWebhookEvents
+  - api.redeliverWebhookEvent
+retries:
+  attempts: 9
+  schedule: [immediate, 1m, 5m, 30m, 2h, 12h, 24h, 24h, 24h]
+  worst_case: ~3.6 days
+  counts_as_failure:
+  - HTTP status outside 200-299
+  - connection times out (5s default from Medblocks' side)
+  - TLS handshake fails or connection refused
+  auto_disable:
+    after: the 9th failed attempt
+    effect: endpoint status flips to "disabled"
+    event_emitted: false
+    detection: read status via api.getWebhook / mb.webhooks.retrieve, or poll mb.webhooks.list on a cron
+    reactivation: api.updateWebhook with {"status":"active"}
+    note: >-
+      No event is emitted for the auto-disable transition, so a silent webhook outage is
+      detectable only by polling. This is the single sharpest operational edge in the event
+      surface.
+redelivery:
+  operation: api.redeliverWebhookEvent
+  rate_limit: one call per minute per event
+  on_limit: {status: 429, type: rate_limit_error, header: Retry-After}
+  guidance: Do not redeliver during the active retry window; Medblocks retries on its own.
+local_development:
+  docs: https://medblocks.com/docs/webhooks/local-development

@@ -1,0 +1,108 @@
+generated: '2026-09-02'
+method: derived
+source: >-
+  openapi/medblocks-platform-openapi.json; id prefixes and lifecycle semantics cross-checked
+  against https://medblocks.com/docs/webhooks/events and
+  https://medblocks.com/docs/patient-access/handle-the-return
+note: >-
+  Derived from the schema graph in the provider's OpenAPI document. Medblocks uses a
+  discriminated-resource convention: every returned object carries a `resource_type` constant,
+  and every id carries a typed prefix, so an agent can identify any object it is handed without
+  knowing which endpoint produced it. Relationships below are read from id-reference fields and
+  embedded arrays, not inferred from naming.
+conventions:
+  discriminator: resource_type
+  id_prefixes:
+  - {prefix: ps_, entity: PatientSession}
+  - {prefix: conn_, entity: Connection}
+  - {prefix: fhirsrc_, entity: FhirSource}
+  - {prefix: evt_, entity: WebhookEvent}
+  - {prefix: none, entity: Patient, note: 'the Patient id IS the caller''s own external patient_id (e.g. "user_42")'}
+  external_identity: >-
+    The caller supplies the Patient id. It is then written into every FHIR Patient resource
+    Medblocks returns, in the identifier array under system urn:medblocks:patient-id — the
+    join key between the Medblocks graph and the caller's own database.
+entities:
+- name: Patient
+  schema: '#/components/schemas/Patient'
+  detail_schema: '#/components/schemas/PatientDetail'
+  id: caller-supplied external id
+  fields: [id, resource_type, email, name, metadata, created_at]
+  operations: [api.createPatient, api.listPatients, api.getPatient, api.updatePatient, api.deletePatient]
+  tombstone: '#/components/schemas/PatientDeleted'
+  note: >-
+    PatientDetail is the GET /patients/{id} projection and is the only place connections[]
+    with lifecycle status is returned.
+- name: PatientSession
+  schema: '#/components/schemas/PatientSession'
+  id_prefix: ps_
+  fields: [id, resource_type, status, url, patient_id, connection_id, recommended_connection_ids, return_url, return_button_label, connections, expires_at, metadata, created_at]
+  status_enum: [open, complete, expired]
+  operations: [api.initPatientSession, api.retrievePatientSession, api.listPatientSessionsForPatient]
+  note: >-
+    The browser-flow object. `url` is the hosted authorization page the patient opens.
+    Two modes: direct (connection_id set) and picker (recommended_connection_ids set).
+- name: Connection
+  schema: inline object on PatientDetail.connections[] and PatientSession.connections[]
+  id_prefix: conn_
+  fields: [id, resource_type, patient_session_id, connection_id, status, scopes, failure_code, failure_at, created_at, updated_at]
+  status_enum: [active, failed, expired, refresh_failed, disconnected]
+  operations: [api.disconnectPatientConnection]
+  tombstone: '#/components/schemas/ConnectionDisconnected'
+  note: >-
+    Has no standalone endpoint — it exists only embedded in a Patient or a PatientSession.
+    `id` is null on a failed auth attempt, so a failed attempt is a Connection row without an
+    identity. The docs are explicit that lifecycle status must be read from
+    GET /patients/{id}, not from the connections catalog.
+- name: FhirSource
+  schema: '#/components/schemas/FhirSource'
+  id_prefix: fhirsrc_
+  fields: [id, resource_type, name, type, fhir_base_url, logo_url, portal_url]
+  operations: [api.listFhirSources, api.getFhirSource]
+  note: >-
+    The catalog entry for an EHR, payer or network — name, logo and portal URL for rendering.
+    Catalog metadata only; it carries no per-patient lifecycle state.
+- name: PatientRecords
+  schema: '#/components/schemas/PatientRecords'
+  fields: [resource_type, patient_id, data, has_more, next_cursor, previous_cursor]
+  operations: [api.getPatientRecords]
+  note: >-
+    A cursor page of FHIR R4 resources. The only entity in the model whose payload is a
+    foreign standard's shape rather than a Medblocks shape.
+- name: WebhookEndpoint
+  schema: '#/components/schemas/WebhookEndpoint'
+  with_secret_schema: '#/components/schemas/WebhookEndpointWithSecret'
+  fields: [id, resource_type, url, events, status, description, metadata, api_version, created_at, updated_at]
+  operations: [api.createWebhook, api.listWebhooks, api.getWebhook, api.updateWebhook, api.deleteWebhook, api.rotateWebhookSecret]
+  tombstone: '#/components/schemas/WebhookEndpointDeleted'
+  note: >-
+    api_version is pinned at registration, so an endpoint's payload shape is versioned
+    independently of the caller's API key. The signing secret is returned only on create and
+    on rotate.
+- name: WebhookEvent
+  schema: '#/components/schemas/WebhookEvent'
+  id_prefix: evt_
+  fields: [id, resource_type, webhook_endpoint_id, type, data, api_version, attempts, next_attempt_at, delivered_at, last_status_code, last_response_body, last_redelivered_at, created_at]
+  operations: [api.listWebhookEvents, api.redeliverWebhookEvent]
+- name: ErrorEnvelope
+  schema: '#/components/schemas/ErrorEnvelope'
+  note: Returned on every non-2xx. See errors/medblocks-problem-types.yml.
+relationships:
+- {from: PatientSession, to: Patient, type: belongs_to, via: patient_id}
+- {from: PatientSession, to: FhirSource, type: has_one, via: connection_id, note: direct mode only}
+- {from: PatientSession, to: FhirSource, type: has_many, via: recommended_connection_ids, note: picker mode only}
+- {from: PatientSession, to: Connection, type: has_many, via: connections, note: 'embedded; authorization attempts inside this flow, including failures'}
+- {from: Patient, to: Connection, type: has_many, via: PatientDetail.connections, note: 'embedded on GET /patients/{id} only, most-recent first'}
+- {from: Connection, to: FhirSource, type: belongs_to, via: connection_id}
+- {from: Connection, to: PatientSession, type: belongs_to, via: patient_session_id, note: nullable}
+- {from: PatientRecords, to: Patient, type: belongs_to, via: patient_id}
+- {from: WebhookEvent, to: WebhookEndpoint, type: belongs_to, via: webhook_endpoint_id}
+- {from: WebhookEvent, to: Patient, type: references, via: data.object.patient_id, note: 'on patient_session.completed, records.sync.completed and records.sync.failed'}
+- {from: WebhookEvent, to: FhirSource, type: references, via: data.object.connection_id, note: 'on connection.token_refresh_failed and both records.sync events'}
+naming_hazard: >-
+  `connection_id` does NOT point at a Connection. Throughout this model it holds a FhirSource
+  id (fhirsrc_*) — the EHR — while the Connection's own identity is `id` (conn_*). Any agent
+  or mapper that treats connection_id as a foreign key to Connection will join to the wrong
+  table. api.disconnectPatientConnection takes the conn_* id from
+  PatientDetail.connections[].id, not the fhirsrc_* value.
+render: null

@@ -1,0 +1,223 @@
+generated: '2026-09-02'
+method: searched
+source: https://medblocks.com/docs/reference/errors
+format: vendor-envelope
+note: 'Medblocks does not use RFC 9457 application/problem+json. It publishes its own typed envelope,
+  returned on every non-2xx response from the Medblocks Platform API, with a broad `type` category and
+  a stable machine-readable `code` inside it. The docs are explicit that callers should branch on `code`,
+  and that the same strings appear on the wire (snake_case under `error`) and on the SDK''s MedblocksError
+  (camelCase properties). Every 4xx/5xx response in openapi/medblocks-platform-openapi.json references
+  #/components/schemas/ErrorEnvelope, so the spec and the docs agree.'
+envelope:
+  media_type: application/json
+  schema: '#/components/schemas/ErrorEnvelope'
+  fields:
+  - wire: error.type
+    sdk: type
+    type: string
+    description: Broad category such as authentication_error, invalid_request_error, or ehr_error.
+  - wire: error.code
+    sdk: code
+    type: string
+    description: Stable machine-readable code. Branch on this.
+  - wire: error.message
+    sdk: message
+    type: string
+    description: Human-readable explanation for developers and logs.
+  - wire: error.param
+    sdk: param
+    type: string|null
+    description: Request field or parameter related to the error, when available.
+  - wire: error.request_id
+    sdk: requestId
+    type: string
+    description: Correlation id; echoes the X-Request-Id response header. Include it in support tickets.
+  - wire: error.doc_url
+    sdk: docUrl
+    type: string
+    description: Link to the API errors reference. Same URL for every code.
+  - wire: HTTP status line
+    sdk: statusCode
+    type: number
+    description: Read from the status line, not the JSON body.
+  - wire: Retry-After header
+    sdk: retryAfter
+    type: number|null
+    description: Seconds to wait; set on rate_limit_error, null otherwise.
+  example:
+    error:
+      type: authentication_error
+      code: invalid_api_key
+      message: API key invalid
+      param: null
+      doc_url: https://medblocks.com/docs/reference/errors
+      request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+http_statuses:
+- status: 400
+  meaning: Validation error, malformed request, or unsupported API version.
+- status: 401
+  meaning: Missing, invalid, or expired API key.
+- status: 402
+  meaning: 'Plan does not cover this: feature_not_enabled, or the patient limit is reached (quota_exceeded).'
+- status: 403
+  meaning: API key is valid but does not have permission for the resource.
+- status: 404
+  meaning: Resource was not found in your organization.
+- status: 409
+  meaning: Resource conflict, such as a duplicate identifier.
+- status: 413
+  meaning: Request payload is too large.
+- status: 429
+  meaning: Rate limit or quota exceeded.
+- status: 500
+  meaning: Unexpected Medblocks server error. Retry with backoff.
+- status: 502
+  meaning: Upstream EHR, OAuth, email, token, or storage service failed.
+categories:
+- type: authentication_error
+  count: 6
+  codes:
+  - code: not_authenticated
+    status: 401
+    cause: The request is not authenticated.
+  - code: invalid_credentials
+    status: 401
+    cause: Login or credential verification failed.
+  - code: session_expired
+    status: 401
+    cause: A user session expired.
+  - code: missing_api_key
+    status: 401
+    cause: '`Authorization` header is missing.'
+  - code: invalid_api_key
+    status: 401
+    cause: API key is invalid.
+  - code: expired_api_key
+    status: 401
+    cause: API key is expired.
+- type: permission_error
+  count: 6
+  codes:
+  - code: forbidden
+    status: 403
+    cause: Authenticated caller cannot access the operation.
+  - code: org_access_denied
+    status: 403
+    cause: Caller is not a member of the active organization.
+  - code: role_insufficient
+    status: 403
+    cause: User role is not allowed to perform the operation.
+  - code: patient_access_denied
+    status: 403
+    cause: Patient session is required or invalid.
+  - code: scope_violation
+    status: 403
+    cause: Resource is outside the active organization.
+  - code: insufficient_scope
+    status: 403
+    cause: API key lacks the required scope.
+- type: invalid_request_error
+  count: 6
+  codes:
+  - code: bad_request
+    status: 400
+    cause: Request is malformed or missing required fields.
+  - code: invalid_data
+    status: 400
+    cause: Request data failed validation.
+  - code: payload_too_large
+    status: 413
+    cause: Request body is too large.
+  - code: invalid_image
+    status: 400
+    cause: Image data or format is invalid.
+  - code: unsupported_api_version
+    status: 400
+    cause: '`Version` header is not supported.'
+  - code: oauth_state_expired
+    status: 400
+    cause: OAuth state expired before callback completion.
+- type: not_found_error
+  count: 1
+  codes:
+  - code: resource_not_found
+    status: 404
+    cause: Patient, patient session, or source was not found.
+- type: conflict_error
+  count: 3
+  codes:
+  - code: resource_conflict
+    status: 409
+    cause: Request conflicts with existing data.
+  - code: already_linked
+    status: 409
+    cause: Resource is already linked to another entity.
+  - code: external_id_already_exists
+    status: 409
+    cause: External identifier already exists in the organization.
+- type: rate_limit_error
+  count: 3
+  codes:
+  - code: throttled
+    status: 429
+    cause: Too many requests.
+  - code: quota_exceeded
+    status: 429
+    cause: API key quota is exceeded.
+  - code: api_key_limit_exceeded
+    status: 429
+    cause: Organization has reached its active API key cap. Revoke an existing key first.
+- type: billing_error
+  count: 2
+  codes:
+  - code: feature_not_enabled
+    status: 402
+    cause: Workspace plan does not include the requested feature.
+  - code: quota_exceeded
+    status: 402
+    cause: Free-tier active-patient limit has been reached.
+- type: ehr_error
+  count: 6
+  codes:
+  - code: fhir_error
+    status: 502
+    cause: Upstream FHIR service failed.
+  - code: oauth_error
+    status: 502
+    cause: Upstream OAuth provider failed.
+  - code: email_error
+    status: 502
+    cause: Email delivery failed.
+  - code: token_exchange_failed
+    status: 502
+    cause: Medblocks could not exchange an OAuth code for tokens.
+  - code: token_unavailable
+    status: 502
+    cause: No valid token is available for the upstream service.
+  - code: storage_error
+    status: 502
+    cause: Cloud storage operation failed.
+- type: api_error
+  count: 3
+  codes:
+  - code: internal_error
+    status: 500
+    cause: Unexpected Medblocks server error.
+  - code: db_error
+    status: 500
+    cause: Database operation failed.
+  - code: config_missing
+    status: 500
+    cause: Required server configuration is missing.
+code_count: 36
+retry_policy:
+  sdk_retries: The medblocks SDK retries 429, 502, 503, 504 and network-level failures up to maxNetworkRetries
+    (default 3) before throwing. It does not retry other 4xx or 500.
+  retry_after: On a 429 the SDK honors the server Retry-After during its own retries; the final MedblocksError
+    still carries retryAfter for caller-side backoff.
+client_side_errors:
+- name: MedblocksSignatureError
+  raised_by: Medblocks.webhooks.constructEvent
+  note: Thrown entirely client-side while verifying a webhook delivery. No HTTP status, no envelope, no
+    doc_url. Read err.reason. Return 400 to the sender on any of them.
+  docs: https://medblocks.com/docs/webhooks/signatures

@@ -1,0 +1,166 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Medblocks Public API",
+    "version": "1.0.0",
+    "summary": "Public read-only endpoints and machine-readable feeds published by medblocks.com.",
+    "description": "This document describes only the endpoints that medblocks.com publishes for third-party and automated use. It is intentionally narrow: other routes under /api are internal to the medblocks.com frontend, are not versioned, and are not supported for external callers.\n\nAll endpoints listed here are unauthenticated, read-only, and safe to retry.",
+    "contact": {
+      "name": "Medblocks",
+      "url": "https://medblocks.com/contact",
+      "email": "content@medblocks.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://medblocks.com",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Certificates",
+      "description": "Verify a training certificate issued by Medblocks."
+    },
+    {
+      "name": "Feeds",
+      "description": "Machine-readable indexes of site content."
+    }
+  ],
+  "paths": {
+    "/api/certificates/{id}": {
+      "get": {
+        "operationId": "getCertificate",
+        "tags": ["Certificates"],
+        "summary": "Verify a Medblocks training certificate",
+        "description": "Returns the details of a certificate issued for completing a Medblocks course. Use this to confirm that a certificate presented by a candidate is genuine. The human-readable equivalent is https://medblocks.com/certificates/{id}.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The certificate identifier, as printed on the certificate.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The certificate exists.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Certificate" }
+              }
+            }
+          },
+          "400": {
+            "description": "No certificate identifier was supplied.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "No certificate exists with that identifier.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "The certificate could not be looked up.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rss.xml": {
+      "get": {
+        "operationId": "getBlogFeed",
+        "tags": ["Feeds"],
+        "summary": "RSS feed of the Medblocks blog",
+        "description": "The 30 most recent articles on healthcare interoperability, FHIR, openEHR and SNOMED CT.",
+        "responses": {
+          "200": {
+            "description": "An RSS 2.0 feed.",
+            "content": {
+              "application/xml": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sitemap-index.xml": {
+      "get": {
+        "operationId": "getSitemapIndex",
+        "tags": ["Feeds"],
+        "summary": "Sitemap index for medblocks.com",
+        "description": "Points to the sitemaps listing every indexable page on the site. Documentation pages are covered by a separate sitemap at /docs/sitemap.xml.",
+        "responses": {
+          "200": {
+            "description": "A sitemap index document.",
+            "content": {
+              "application/xml": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Certificate": {
+        "type": "object",
+        "properties": {
+          "course_name": {
+            "type": ["string", "null"],
+            "description": "Title of the course the certificate was issued for.",
+            "examples": ["FHIR Bootcamp"]
+          },
+          "user_name": {
+            "type": ["string", "null"],
+            "description": "Name of the person the certificate was issued to."
+          },
+          "completion_date": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the course was completed."
+          },
+          "date_created": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the certificate record was created."
+          },
+          "date_updated": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the certificate record was last changed."
+          },
+          "image": {
+            "type": ["string", "null"],
+            "description": "Identifier of the certificate image, when one has been generated."
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "A human-readable description of what went wrong."
+          }
+        },
+        "required": ["error"]
+      }
+    }
+  }
+}

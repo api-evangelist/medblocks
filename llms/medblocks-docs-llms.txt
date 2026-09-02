@@ -1,0 +1,302 @@
+# Medblocks Platform Docs
+## Auth event history
+Read the audit trail of authorization attempts to see where a connection failed.
+URL: /docs/auth-event-history
+## Overview
+Server-to-server FHIR, bulk import, and HL7v2-over-HTTP that run unattended.
+URL: /docs/backend
+## Cerner
+Register a Cerner (Oracle Health) System app for population-level data extraction via SMART Backend Services.
+URL: /docs/backend/cerner
+## Billing & Plans
+Plan tiers, patient quota, and how paid features are enabled per workspace.
+URL: /docs/billing
+## Build with AI
+Set up AI coding agents and assistants to build with Medblocks.
+URL: /docs/build-with-ai
+## Clinical Domain Models
+How Medblocks turns connected clinical data into domain-shaped concepts your product can use.
+URL: /docs/clinical-data-models
+## Overview
+Put your app inside the EHR with CDS Hooks and SMART App Launch.
+URL: /docs/clinician-workflow
+## CDS Hooks
+Surface guidance as a native card at the right moment in the clinician's workflow.
+URL: /docs/clinician-workflow/cds-hooks
+## Cerner
+Register a Cerner (Oracle Health) Provider app for in-PowerChart SMART on FHIR launch.
+URL: /docs/clinician-workflow/cerner
+## SMART App Launch
+Open your full app embedded inside the EHR, scoped to the patient on screen.
+URL: /docs/clinician-workflow/smart-app-launch
+## Comparisons
+How Medblocks compares to other healthcare integration tools, and where we differ.
+URL: /docs/comparisons
+## Medblocks vs Flexpa
+How Medblocks compares to Flexpa for patient-mediated data access, branding, and pricing.
+URL: /docs/comparisons/flexpa
+## Medblocks vs Health Gorilla
+How Medblocks compares to Health Gorilla and the treatment-use network platforms, across reach, fidelity, and pricing.
+URL: /docs/comparisons/health-gorilla
+## Medblocks vs Medplum
+How Medblocks compares to Medplum and the FHIR CDRs, across connectivity, modeling, and deduplication.
+URL: /docs/comparisons/medplum
+## Medblocks vs Redox
+How Medblocks compares to Redox for EHR integration, across surfaces, write capability, and pricing.
+URL: /docs/comparisons/redox
+## Medblocks vs Rhapsody
+How Medblocks compares to Rhapsody and the integration engines, across surfaces, patient state, and pricing.
+URL: /docs/comparisons/rhapsody
+## Medblocks vs Tuva Health
+How Medblocks compares to Tuva Health and the healthcare analytics platforms, across connectivity, modeling, and who they are built for.
+URL: /docs/comparisons/tuva-health
+## Overview
+Add workspace credentials for patient access, clinical workflows, backend sync, and network access.
+URL: /docs/configure-connections
+## Backend
+Configure Epic backend access, organizations, and FHIR Group IDs.
+URL: /docs/configure-connections/backend
+## Clinical Workflows
+Configure Epic launch, CDS Hooks, and clinical workflow credentials.
+URL: /docs/configure-connections/clinical-workflows
+## Network
+Plan network and exchange access for cross-organization records.
+URL: /docs/configure-connections/network
+## Patient Access
+Configure Epic for patient-facing portal authorization.
+URL: /docs/configure-connections/patient-access
+## Data out
+The ways data leaves Medblocks: SDK and API reads, exports, and webhook events.
+URL: /docs/data-out
+## Connection directory
+Search every source you can connect to, and the surfaces each one supports.
+URL: /docs/directory
+## Export to FHIR server
+Push records from Medblocks to a destination FHIR R4 server.
+URL: /docs/export-to-fhir-server
+## Export to S3
+Write records to object storage for a warehouse, lakehouse, or batch ingestion.
+URL: /docs/export-to-s3
+## How Medblocks works
+Source to connection to background pull to the systems where your team works.
+URL: /docs/how-medblocks-works
+## Introduction
+One integration for all healthcare data.
+URL: /docs
+## Integration patterns
+The four integration surfaces and the relationships that unlock each one.
+URL: /docs/integration-patterns
+## MCP server
+Give AI assistants access to your Medblocks Platform workspace.
+URL: /docs/mcp
+## Overview
+Reach a patient's records across organizations through the national networks.
+URL: /docs/network
+## Our approach
+How healthcare integration works today, and how we do it differently.
+URL: /docs/our-approach
+## Introduction
+Let patients authorize and consent to their own health records.
+URL: /docs/patient-access
+## Aetna
+Guide to integrate with the Aetna Patient Access API for Medicare Advantage and commercial members' clinical + claims data.
+URL: /docs/patient-access/aetna
+## After connection
+Read the session result, list a patient's connections, and listen for record events.
+URL: /docs/patient-access/after-connection
+## athenahealth
+Guide to integrate with athenahealth.
+URL: /docs/patient-access/athena
+## Authorization
+How a patient grants your app access to their records, and what Medblocks handles for you.
+URL: /docs/patient-access/authorization
+## Background pull
+Why records arrive after the patient connects, and what your app should show while they do.
+URL: /docs/patient-access/background-pull
+## Cerner
+Configure Cerner authorization, patient launch, and FHIR access for Medblocks Platform.
+URL: /docs/patient-access/cerner
+## CMS Blue Button
+Guide to integrate with the CMS Blue Button 2.0 Medicare claims API.
+URL: /docs/patient-access/cms-blue-button
+## Create a patient session
+Pick who renders connection search. Let Medblocks host the page, or build it into your own UI.
+URL: /docs/patient-access/create-patient-session
+## Medblocks-hosted page
+The least-code way to connect a patient. Start a session, send them to the URL you get back, and let Medblocks render the page where they find their hospital and approve.
+URL: /docs/patient-access/create-patient-session/medblocks-hosted-page
+## Your own UI
+Build connection search into your own app, then send the patient straight to the facility they chose.
+URL: /docs/patient-access/create-patient-session/your-own-ui
+## Create patients
+Give each person a stable patient_id, or let the session create one for you.
+URL: /docs/patient-access/create-patients
+## eClinicalWorks
+Guide to integrate with eClinicalWorks via the healow platform.
+URL: /docs/patient-access/ecw
+## Epic
+Guide to integrate with the Epic EHR system.
+URL: /docs/patient-access/epic
+## Find connections
+Search the Medblocks catalog to find the hospital or payer a patient should connect to.
+URL: /docs/patient-access/find-connections
+## Get the data
+Read connected records on demand or send them to your own systems with exports.
+URL: /docs/patient-access/get-the-data
+## Pagination
+Read a single page from any list method, or let the SDK walk every page for you.
+URL: /docs/patient-access/get-the-data/pagination
+## Handle the return
+Read the return_url params, then show the connected facilities in your app.
+URL: /docs/patient-access/handle-the-return
+## Meditech
+Guide to integrate with Meditech Expanse via the Greenfield Workspace program.
+URL: /docs/patient-access/meditech
+## Overview
+A step-by-step build guide for a complete patient-access integration.
+URL: /docs/patient-access/overview
+## Patient session
+How your app lets a patient connect their records, and how you track it.
+URL: /docs/patient-access/patient-session
+## Quickstart
+Send a test patient to sign in at a sandbox hospital and read the records they share.
+URL: /docs/patient-access/quickstart
+## UnitedHealthcare
+Guide to integrate UnitedHealthcare's Patient Access API (Optum FLEX) so members can share their claims and clinical data.
+URL: /docs/patient-access/unitedhealthcare
+## Wearables and mobile
+Coming soon. Patient-authorized device data through the mobile SDK.
+URL: /docs/patient-access/wearables
+## Pull monitoring
+Watch background pulls run and understand their failure states.
+URL: /docs/pull-monitoring
+## Quickstarts
+Pick an integration pattern and reach your first patient record in minutes.
+URL: /docs/quickstarts
+## API Reference
+Explore the Medblocks Platform API generated from the oRPC OpenAPI specification.
+URL: /docs/reference/api
+## Create a patient
+Create a patient with your own patient_id plus optional email, name, and metadata. The id is unique within your organization.
+URL: /docs/reference/api/create-patient
+## Register a webhook endpoint
+Register an HTTPS endpoint to receive signed event deliveries. The signing secret is returned once in this response.
+URL: /docs/reference/api/create-webhook
+## Delete a patient
+Permanently delete a patient and their connections by patient_id. Returns a tombstone confirming the deletion.
+URL: /docs/reference/api/delete-patient
+## Delete a webhook endpoint
+Permanently delete a webhook endpoint and its delivery history. Returns a tombstone confirming the deletion.
+URL: /docs/reference/api/delete-webhook
+## Disconnect a connection
+Revoke your organization's access to one of the patient's connections by its conn_ id. The patient's link to the source EHR is removed for your organization; stored tokens are revoked when no other workspace still uses them. Returns a tombstone confirming the disconnect.
+URL: /docs/reference/api/disconnect-patient-connection
+## Retrieve a FHIR source
+Retrieve a single EHR from the catalog by its fhirsrc_ id or raw fhir_base_url, scoped to your environment.
+URL: /docs/reference/api/get-fhir-source
+## Retrieve a patient
+Retrieve a patient by their patient_id - the developer-provided identifier set on creation.
+URL: /docs/reference/api/get-patient
+## Get patient records
+Return the patient's latest stored FHIR resources with their source EHR, paginated.
+URL: /docs/reference/api/get-patient-records
+## Retrieve a webhook endpoint
+Retrieve a single webhook endpoint by its wh_ id, including its URL, subscribed events, and status. The secret is never returned.
+URL: /docs/reference/api/get-webhook
+## Liveness check
+Unauthenticated probe that returns ok and the current server_time to confirm the API is reachable.
+URL: /docs/reference/api/health
+## Start a patient session
+Start a patient session and get back a url to send the patient to so they can connect their records. Track progress with the session's status.
+URL: /docs/reference/api/init-patient-session
+## List FHIR sources
+Search the catalog of registered EHRs with cursor pagination and optional q text and vendor type filters.
+URL: /docs/reference/api/list-fhir-sources
+## List patient sessions for a patient
+List a patient's sessions with cursor pagination and an optional status filter, identified by their patient_id.
+URL: /docs/reference/api/list-patient-sessions-for-patient
+## List patients
+List your organization's patients with cursor pagination and optional exact-match filters on patient_id or email.
+URL: /docs/reference/api/list-patients
+## List recent webhook events for an endpoint
+List recent delivery records for one endpoint with cursor pagination and an optional delivered filter for the delivery audit.
+URL: /docs/reference/api/list-webhook-events
+## List webhook endpoints
+List your organization's webhook endpoints with cursor pagination and an optional status filter. Secrets are never returned.
+URL: /docs/reference/api/list-webhooks
+## Manually redeliver a webhook event
+Re-enqueue a webhook event for delivery by its evt_ id. Limited to one redelivery per event each minute.
+URL: /docs/reference/api/redeliver-webhook-event
+## Retrieve an EHR launch context
+Resolve the mb_launch handle (appended to your app's launch URL after an EHR launch) into the patient / encounter / practitioner / EHR the app was launched in.
+URL: /docs/reference/api/retrieve-launch-context
+## Retrieve a patient session
+Retrieve a patient session by its ps_ id, including its current status and the connections created during it.
+URL: /docs/reference/api/retrieve-patient-session
+## Rotate the signing secret for a webhook endpoint
+Generate a new signing secret for a webhook endpoint, invalidating the old one. The new secret is returned once in this response.
+URL: /docs/reference/api/rotate-webhook-secret
+## Update a patient
+Update a patient by id. Omitted optional fields are cleared. patient_id in the body must match the URL.
+URL: /docs/reference/api/update-patient
+## Update a webhook endpoint
+Partially update a webhook endpoint's URL, subscribed events, description, or metadata, or re-enable it with status active.
+URL: /docs/reference/api/update-webhook
+## Changelog
+Release history of the medblocks SDK, newest first.
+URL: /docs/reference/changelog
+## API conventions
+Base URL, authentication, the error envelope, idempotency, and pagination.
+URL: /docs/reference/conventions
+## API Errors
+Standard error envelope, HTTP statuses, and the stable type and code the API and SDK share.
+URL: /docs/reference/errors
+## Versioning and upgrades
+Date-pinned API versions, the upgrade policy, and the changelog.
+URL: /docs/reference/versioning
+## Test with sandboxes
+Use Sandbox workspaces, sample patients, and sandbox sources before production.
+URL: /docs/sandboxes
+## Security and compliance
+HIPAA, SOC 2, ISO, BAAs, and the controls around healthcare data workflows.
+URL: /docs/security-and-compliance
+## Sources and connections
+How Medblocks names the systems you connect to and the live links created from them.
+URL: /docs/sources-and-connections
+## Load test patients
+Fill a sandbox with practice patients, either a built-in set or your own files.
+URL: /docs/synthetic-fhir-data
+## Webhooks
+Push notifications for patient session completion, refresh failures, and background-pull events. Build a verified receiver in minutes.
+URL: /docs/webhooks
+## Events Catalog
+Every event type Medblocks delivers, when it fires, and the shape of event.data.object.
+URL: /docs/webhooks/events
+## Local Development
+Tunneling, replaying real events, and unit-testing your receiver without leaving your laptop.
+URL: /docs/webhooks/local-development
+## Managing Endpoints
+Create, list, update, rotate, and delete webhook endpoints from your backend with mb.webhooks.
+URL: /docs/webhooks/managing-endpoints
+## Quickstart
+Register an endpoint, verify the signature, switch on event.type, respond 2xx. Five steps.
+URL: /docs/webhooks/quickstart
+## Redelivery
+Manually re-enqueue a webhook event after fixing a receiver bug. Same event.id, dedupe by it.
+URL: /docs/webhooks/redelivery
+## Retries & Auto-Disable
+How Medblocks retries failed deliveries, when an endpoint gets auto-disabled, and how to bring it back.
+URL: /docs/webhooks/retries-and-disable
+## Signatures
+The Medblocks-Signature header, constructEvent, the raw-body trap, and the five failure reasons.
+URL: /docs/webhooks/signatures
+## Use Medblocks without code
+Use the dashboard as a complete control plane for setup, monitoring, exports, and support.
+URL: /docs/without-code
+## Set up your workspace
+Create a Sandbox or Production workspace, mint an API key, and authenticate your first request.
+URL: /docs/workspace
+## Full Markdown
+The full concatenated documentation is available at /docs/llms-full.txt.
+## Need help?
+Running into an issue or have a question the docs do not answer? Get support from the Medblocks team through https://forms.gle/dtVxkmfL6Yimp6SBA and we will get back to you.

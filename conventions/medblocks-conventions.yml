@@ -1,0 +1,179 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/reference/errors,
+  https://medblocks.com/docs/patient-access/get-the-data/pagination,
+  https://medblocks.com/docs/webhooks, https://medblocks.com/docs/webhooks/signatures,
+  https://medblocks.com/docs/webhooks/retries-and-disable,
+  https://medblocks.com/docs/webhooks/redelivery, https://medblocks.com/docs/billing,
+  openapi/medblocks-platform-openapi.json
+applies_to: medblocks-platform-api
+note: >-
+  /docs/reference/conventions, the page that is supposed to carry base URL, authentication,
+  the error envelope, idempotency and pagination in one place, is still a stub carrying a
+  "This page is being written as part of the docs restructure" callout. Everything below was
+  assembled from the pages that do carry each convention, plus the contract itself.
+base_url: https://app.medblocks.com
+authentication:
+  style: bearer-api-key
+  header: 'Authorization: Bearer mb_sk_live_...'
+  posture: server-to-server only; no browser-side calls
+  detail: authentication/medblocks-authentication.yml
+versioning:
+  style: date-pinned
+  header: Version
+  required: false
+  current: '2026-04-25'
+  default: the version pinned on the API key
+  unsupported: HTTP 400, invalid_request_error / unsupported_api_version
+  detail: lifecycle/medblocks-lifecycle.yml
+pagination:
+  style: opaque forward cursor
+  request_params:
+  - {name: limit, in: query, type: integer, min: 1, max: 100, default: 10}
+  - {name: starting_after, in: query, type: string, description: cursor from the previous page's next_cursor}
+  response_fields:
+  - {name: resource_type, value: list, description: constant discriminator on a paginated response}
+  - {name: data, description: items on this page}
+  - {name: has_more, type: boolean, description: true when at least one more page follows}
+  - {name: next_cursor, type: string|null, description: pass as starting_after; null when there is no more data}
+  rules:
+  - Cursors are opaque and must be passed back exactly.
+  - Keep filters stable across every page of the same read.
+  - Record-page cursors stay valid for 7 days from the response that issued them.
+  sdk_helper: >-
+    List endpoints (patients.list, patients.listPatientSessions, webhooks.list,
+    webhooks.listEvents, connections.list) expose autoPagingIterator() so a caller can walk
+    every page without cursor bookkeeping.
+  docs: https://medblocks.com/docs/patient-access/get-the-data/pagination
+field_expansion:
+  supported: false
+  note: No expand / fields / sparse-fieldset parameter appears in the contract or the docs.
+metadata:
+  supported: true
+  note: >-
+    Patients and patient sessions accept a free-form `metadata` object that is echoed back —
+    a patient session's metadata is returned on the patient_session.completed webhook exactly
+    as it was passed at init.
+request_tracing:
+  header: X-Request-Id
+  direction: response
+  echoed_in: error.request_id
+  observed: true
+  evidence: >-
+    GET https://app.medblocks.com/health returned x-request-id
+    b24254c6-09ec-4f94-8111-5807929749af on an unauthenticated probe, 2026-09-02.
+  guidance: Log error.code, error.message, the HTTP status and error.request_id on every error path.
+error_envelope:
+  media_type: application/json
+  shape: '{ "error": { type, code, message, param, doc_url, request_id } }'
+  rfc9457: false
+  detail: errors/medblocks-problem-types.yml
+rate_limit_signaling:
+  status: 429
+  header: Retry-After
+  sdk_field: err.retryAfter
+  detail: rate-limits/medblocks-rate-limits.yml
+idempotency:
+  supported: false
+  request_header: null
+  scope: null
+  retention: null
+  note: >-
+    The Medblocks Platform API publishes no Idempotency-Key header and no idempotent-retry
+    semantics on its write path. POST /patients, POST /patient-sessions, POST /webhooks and
+    POST /events/{id}/redeliver carry no replay-safety contract, and no 409 code in the
+    published error table is a replayed-request signal (external_id_already_exists is a
+    duplicate-identifier conflict, not an idempotent replay). Idempotency in the Medblocks
+    docs is a requirement placed on the CALLER, not a guarantee offered by the API: webhook
+    receivers must be idempotent and dedupe on event.id (the docs suggest a 90-day dedupe TTL),
+    and FHIR export writers are told to upsert idempotently by app patient id, source id,
+    resource type and resource id. Recorded as absent, not as present-in-another-form.
+  caller_side_requirements:
+  - surface: webhook receiver
+    rule: The same event.id may be delivered more than once; dedupe on it.
+    suggested_ttl_days: 90
+    docs: https://medblocks.com/docs/webhooks/redelivery
+  - surface: FHIR export writer
+    rule: Upsert idempotently by app patient id, source id, FHIR resource type and resource id.
+    docs: https://medblocks.com/docs/export-to-fhir-server
+dry_run_mode:
+  supported: false
+  substitute: >-
+    There is no per-request dry-run flag. The equivalent affordance is environment separation:
+    a Sandbox workspace mints mb_sk_sbx_ keys, sees only sandbox-scoped sources, and can be
+    seeded with a synthetic Synthea cohort. See sandbox/medblocks-sandbox.yml.
+reversibility:
+  grade: documented
+  note: >-
+    Medblocks publishes a reversal path for the connection surface and an explicit
+    irreversibility statement for patient deletion, but states no window for either. Nothing
+    in the docs or the contract gives a retention or restore period after a destructive call,
+    so an agent cannot know how long it has to undo anything. Graded `documented`, not
+    `verified`. NO WINDOW IS ASSERTED HERE THAT THE PROVIDER DOES NOT STATE.
+  write_surfaces:
+  - operation: api.disconnectPatientConnection
+    method: DELETE
+    path: /patients/{id}/connections/{connection_id}
+    consequence: Revokes the organization's access to that source and returns a tombstone.
+    reversal: >-
+      Not an undo. Access is restored only by the patient authorizing again through a new
+      PatientSession (api.initPatientSession) against the same source.
+    reversal_operation: api.initPatientSession
+    window: null
+    window_stated: false
+    docs: https://medblocks.com/docs/patient-access/patient-session
+  - operation: api.deletePatient
+    method: DELETE
+    path: /patients/{id}
+    consequence: >-
+      "Permanently delete a patient and their connections by patient_id. Returns a tombstone
+      confirming the deletion." (provider's own operation description)
+    reversal: none
+    reversal_operation: null
+    window: null
+    window_stated: false
+    irreversible: true
+    note: >-
+      The provider's own MCP documentation calls the equivalent tool, delete_person,
+      "destructive and irreversible from chat" and tells assistants to confirm with the user
+      before calling it.
+  - operation: api.deleteWebhook
+    method: DELETE
+    path: /webhooks/{id}
+    consequence: Removes the webhook endpoint.
+    reversal: none
+    reversal_operation: null
+    window: null
+    window_stated: false
+    note: >-
+      A distinct, milder state — auto-disable — IS reversible. After 9 failed delivery
+      attempts (~3.6 days end to end) an endpoint flips to status "disabled" with no event
+      emitted; api.updateWebhook with {status:"active"} re-enables it, and the docs state the
+      disabled state is permanent until you re-enable it. That is a stated reversal with an
+      unbounded window, not a deletion undo.
+  - operation: api.rotateWebhookSecret
+    method: POST
+    path: /webhooks/{id}/rotate-secret
+    consequence: Issues a new signing secret; deliveries signed with the old one stop verifying.
+    reversal: none
+    reversal_operation: null
+    window: null
+    window_stated: false
+  - operation: api.redeliverWebhookEvent
+    method: POST
+    path: /events/{id}/redeliver
+    consequence: Re-enqueues a past delivery. This is a replay affordance, not a reversal.
+    reversal: n/a
+    window: null
+    rate_limit: one call per minute per event
+    docs: https://medblocks.com/docs/webhooks/redelivery
+  read_only: false
+cross_references:
+  errors: errors/medblocks-problem-types.yml
+  lifecycle: lifecycle/medblocks-lifecycle.yml
+  authentication: authentication/medblocks-authentication.yml
+  scopes: scopes/medblocks-scopes.yml
+  rate_limits: rate-limits/medblocks-rate-limits.yml
+  webhooks: asyncapi/medblocks-webhooks.yml
+  sandbox: sandbox/medblocks-sandbox.yml

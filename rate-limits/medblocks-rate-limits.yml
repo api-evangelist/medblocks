@@ -1,0 +1,82 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/webhooks/redelivery, https://medblocks.com/docs/reference/errors,
+  https://medblocks.com/docs/billing, https://medblocks.com/docs/webhooks/retries-and-disable
+applies_to: medblocks-platform-api
+limit_count: 1
+note: >-
+  Medblocks documents exactly ONE numeric rate limit — on webhook redelivery. There is no
+  published per-key, per-account or per-endpoint request ceiling for the rest of the Platform
+  API. What IS published, and what matters more to an agent, is the runtime signal: a 429 with
+  a Retry-After header and a typed rate_limit_error envelope, plus a separate 402 billing_error
+  path for plan quota. An unauthenticated probe of GET https://app.medblocks.com/health on
+  2026-09-02 returned no X-RateLimit-* or RateLimit-* headers, so no standard-header budget
+  disclosure was observed on an anonymous response; whether authenticated responses carry them
+  is not documented and was not tested.
+rate_limits:
+- scope: per-event
+  surface: POST /events/{id}/redeliver (api.redeliverWebhookEvent)
+  limit: 1
+  window: 60s
+  burst: null
+  on_exhaustion:
+    status: 429
+    error_type: rate_limit_error
+    header: Retry-After
+    sdk_field: err.retryAfter
+    sdk_default_backoff_seconds: 60
+  docs: https://medblocks.com/docs/webhooks/redelivery
+  note: >-
+    "Redelivery is rate-limited to one call per minute per event. A second call within 60
+    seconds throws a MedblocksError with type rate_limit_error and the Retry-After header
+    parsed onto err.retryAfter."
+response_headers:
+- name: Retry-After
+  emitted_on: 429
+  documented: true
+  observed: false
+  note: Documented as set on rate_limit_error and null otherwise. Not observed on an anonymous 200.
+- name: X-Request-Id
+  emitted_on: every response
+  documented: true
+  observed: true
+  note: Not a rate-limit header, but the correlation id an agent should carry into any limit escalation.
+- name: X-RateLimit-Limit / X-RateLimit-Remaining / RateLimit-*
+  documented: false
+  observed: false
+  note: >-
+    Not documented and not present on the anonymous GET /health probe of 2026-09-02. Absence
+    of a budget header is the finding: a caller cannot see how close it is to a limit until
+    the 429 arrives.
+exhaustion_codes:
+- {status: 429, type: rate_limit_error, code: throttled, meaning: Too many requests.}
+- {status: 429, type: rate_limit_error, code: quota_exceeded, meaning: API key quota is exceeded.}
+- {status: 429, type: rate_limit_error, code: api_key_limit_exceeded, meaning: 'Organization has reached its active API key cap. Revoke an existing key first.'}
+- {status: 402, type: billing_error, code: quota_exceeded, meaning: Free-tier active-patient limit has been reached.}
+- {status: 402, type: billing_error, code: feature_not_enabled, meaning: Workspace plan does not include the requested feature.}
+client_retry_behaviour:
+  sdk: medblocks (npm)
+  retries_on: [429, 502, 503, 504, network failures]
+  does_not_retry: [other 4xx, 500]
+  max_network_retries_default: 3
+  honors_retry_after: true
+  docs: https://medblocks.com/docs/reference/errors
+adjacent_quotas:
+  patient_quota:
+    plan: Free
+    limit: 1000
+    unit: active patients
+    definition: >-
+      A patient counts as active the first time Medblocks successfully pulls FHIR data for
+      them; creating a patient record alone does not draw against the quota.
+    on_exhaustion: {status: 402, type: billing_error, code: quota_exceeded}
+    docs: https://medblocks.com/docs/billing
+  webhook_delivery_retries:
+    attempts: 9
+    schedule: [immediate, 1m, 5m, 30m, 2h, 12h, 24h, 24h, 24h]
+    worst_case: ~3.6 days from first failure to exhaustion
+    on_exhaustion: endpoint status flips to "disabled" with no event emitted
+    receiver_timeout: 5s
+    docs: https://medblocks.com/docs/webhooks/retries-and-disable
+    note: This is Medblocks' outbound retry budget against your receiver, not a limit on your calls.

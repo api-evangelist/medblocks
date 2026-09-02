@@ -1,0 +1,72 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://registry.npmjs.org/medblocks, https://registry.npmjs.org/medblocks-ui,
+  https://pypi.org/pypi/medblocks/json, https://github.com/medblocks,
+  https://medblocks.com/docs/reference/errors
+note: >-
+  Versions and dates are read from each registry's own metadata endpoint on 2026-09-02.
+  The TypeScript SDK `medblocks` is the package the Medblocks docs and the provider's own
+  agent skill tell developers to install. No first-party Python, Ruby, Go, Java, .NET or PHP
+  SDK for the current Medblocks Platform API was found in any registry; the docs direct
+  non-TS/JS callers to the REST API instead.
+packages:
+- name: medblocks
+  registry: npm
+  url: https://www.npmjs.com/package/medblocks
+  language: TypeScript
+  official: true
+  version: 1.0.0
+  published: '2026-07-08'
+  license: proprietary
+  repository: https://github.com/medblocks/connect
+  covers: medblocks-platform-api
+  note: >-
+    Official Medblocks Platform SDK. Covers patient sessions, patients, the connections
+    catalog, FHIR record reads, webhook management, event redelivery, webhook signature
+    verification and return-URL parsing. The changelog documents a v1.2.0 released
+    2026-08-04 (single MedblocksError, isMedblocksError guard) and a 1.2.0-dev.5 prerelease
+    is published, but the `latest` dist-tag on npm still resolves to 1.0.0 — a caller running
+    `npm install medblocks` today gets the pre-v1.1 surface, without
+    patients.disconnectConnection or the v1.2 error model.
+- name: medblocks-ui
+  registry: npm
+  url: https://www.npmjs.com/package/medblocks-ui
+  language: TypeScript
+  official: true
+  version: 0.0.217
+  published: '2025-04-29'
+  license: Apache-2.0
+  repository: https://github.com/medblocks/medblocks-ui
+  covers: null
+  note: >-
+    Open-source web-component library for building openEHR composition and FHIR resource
+    forms. Predates the Medblocks Platform API and is not a client for it; see
+    components/medblocks-components.yml.
+- name: medblocks
+  registry: pypi
+  url: https://pypi.org/project/medblocks/
+  language: Python
+  official: true
+  version: 0.0.2
+  published: '2019-09-17'
+  license: null
+  repository: https://gitlab.com/medblocks/medblocks.py
+  covers: null
+  note: >-
+    A 2019 "MedBlocks python client" published by founder Sidharth R against the original
+    GitLab-hosted Medblocks project. It has had no release in seven years and does not
+    target the current Medblocks Platform API. Recorded as an abandonment signal, not as a
+    supported SDK.
+absent:
+- registry: rubygems
+  status: 404
+- registry: crates.io
+  status: 403
+  note: crates.io rejected an unauthenticated lookup; not established either way
+- registry: maven-central
+  note: no first-party Medblocks client artifact found
+- registry: nuget
+  note: no first-party Medblocks client artifact found
+- registry: pkg.go.dev
+  note: no first-party Medblocks client module found

@@ -1,0 +1,82 @@
+generated: '2026-09-02'
+method: searched
+source: https://github.com/medblocks/skills
+note: >-
+  These Agent Skills are authored and published by Medblocks, not by API Evangelist. They are
+  saved here verbatim from the provider's public mirror (medblocks/skills, authored internally
+  under ai/plugins/ and mirrored by .github/workflows/agent-skills-publish.yml on merge to
+  main). The upstream folder ships as one skill — SKILL.md is the entrypoint and the other
+  three are read on demand — and is installable with `npx skills add medblocks/skills` or
+  `claude plugin marketplace add medblocks/skills`. File names are prefixed for this repo's
+  naming convention; content is unmodified.
+upstream:
+  repository: https://github.com/medblocks/skills
+  skill_path: skills/medblocks/
+  packaging: .claude-plugin/marketplace.json (marketplace root is the plugin; no plugin.json)
+  install:
+  - npx skills add medblocks/skills
+  - claude plugin marketplace add medblocks/skills && claude plugin install medblocks-skills@medblocks
+  - cp -r skills/medblocks ~/.claude/skills/medblocks
+  also_published_via: Skills-over-MCP draft extension on https://app.medblocks.com/mcp
+skills:
+- file: medblocks-skill.md
+  upstream: skills/medblocks/SKILL.md
+  name: medblocks
+  role: entrypoint
+  api: medblocks-platform-api
+  description: >-
+    Stable integration playbook — SDK-first guidance, the core primitive table, secrets and
+    PHI rules, cursor pagination, webhook signature verification, and the drift boundary.
+  operations:
+  - api.initPatientSession
+  - api.retrievePatientSession
+  - api.getPatient
+  - api.getPatientRecords
+  - api.disconnectPatientConnection
+- file: medblocks-patient-access.md
+  upstream: skills/medblocks/patient-access.md
+  name: medblocks patient access
+  role: task guide
+  api: medblocks-platform-api
+  description: >-
+    Plan and implement Patient Access: hosted page vs own UI, stable app patient id, return
+    handling, server-side session verification, connection status semantics, revocation.
+  operations:
+  - api.createPatient
+  - api.initPatientSession
+  - api.retrievePatientSession
+  - api.getPatient
+  - api.disconnectPatientConnection
+  - api.getPatientRecords
+- file: medblocks-export-fhir.md
+  upstream: skills/medblocks/export-fhir.md
+  name: medblocks export fhir
+  role: task guide
+  api: medblocks-platform-api
+  description: >-
+    Read, sync, store or forward FHIR records — the records read path, cursor pagination,
+    idempotent upserts, the urn:medblocks:patient-id identifier rule, and FHIR-server / S3
+    destinations.
+  operations:
+  - api.getPatientRecords
+  - api.listPatients
+- file: medblocks-mcp.md
+  upstream: skills/medblocks/mcp.md
+  name: medblocks mcp
+  role: task guide
+  api: medblocks-platform-api
+  description: >-
+    Operating the hosted MCP server at https://app.medblocks.com/mcp — OAuth consent vs
+    mb_sk_ API key clients, the ten-tool surface, the interactive workflow, and the PHI and
+    external-content rules.
+  tools:
+  - get_workspace_overview
+  - list_workspaces
+  - list_people
+  - search_health_systems
+  - choose_health_systems
+  - connect_health_system
+  - check_connection_status
+  - get_health_records
+  - disconnect_health_system
+  - delete_person

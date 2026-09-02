@@ -1,0 +1,27 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Medblocks Public Site API
+  version: 1.0.0
+x-provenance:
+  generated: '2026-09-02'
+  method: generated
+  source: openapi/medblocks-public-site-openapi.json
+  note: >-
+    Non-destructive Overlay over the provider's own OpenAPI 3.1.0 document served at
+    https://medblocks.com/openapi.json. That document is already tagged and described; the
+    only thing it lacks is a pointer back to the RFC 9727 api-catalog that advertises it and
+    to the site's llms.txt. Nothing else is changed.
+actions:
+- target: $
+  description: Link the spec to the discovery documents that advertise it.
+  update:
+    externalDocs:
+      description: Medblocks documentation
+      url: https://medblocks.com/docs
+- target: $.info
+  description: Record the discovery surfaces this API is advertised through.
+  update:
+    x-discovery:
+      api_catalog: https://medblocks.com/.well-known/api-catalog
+      llms_txt: https://medblocks.com/llms.txt
+      openapi: https://medblocks.com/openapi.json

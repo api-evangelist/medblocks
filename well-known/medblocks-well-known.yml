@@ -1,0 +1,57 @@
+generated: '2026-09-02'
+method: probed
+source: live GET of the named /.well-known/ paths on every Medblocks host
+note: >-
+  medblocks.com serves a real RFC 9727 api-catalog linkset that points at its published
+  OpenAPI, its docs and its llms.txt. app.medblocks.com serves RFC 8414 authorization-server
+  metadata, OpenID Provider metadata and RFC 9728 protected-resource metadata for the hosted
+  MCP server. Neither host serves an RFC 9116 security.txt. app.medblocks.com is a
+  single-page app whose router answers 200 with an HTML shell for unknown paths, so every
+  miss on that host was confirmed by reading the body, not by the status code alone.
+hosts:
+- host: medblocks.com
+  documents:
+  - path: /.well-known/api-catalog
+    status: 200
+    file: medblocks-api-catalog.json
+    content_type: application/json
+    note: RFC 9727 linkset; service-desc -> /openapi.json, service-doc -> /docs, describedby -> /llms.txt
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+- host: app.medblocks.com
+  documents:
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: medblocks-app-oauth-authorization-server.json
+    content_type: application/json
+    note: RFC 8414; issuer https://app.medblocks.com/api/auth, 10 scopes, PKCE S256, dynamic client registration
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: medblocks-app-openid-configuration.json
+    content_type: application/json
+  - path: /.well-known/oauth-protected-resource/mcp
+    status: 200
+    file: medblocks-app-oauth-protected-resource-mcp.json
+    content_type: application/json
+    note: RFC 9728; resource https://app.medblocks.com/mcp, referenced by the MCP 401 WWW-Authenticate header
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+  - path: /.well-known/security.txt
+    status: 404
+    note: SPA shell body, treated as a miss
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404

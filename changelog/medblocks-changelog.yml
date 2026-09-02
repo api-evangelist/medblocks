@@ -1,0 +1,56 @@
+generated: '2026-09-02'
+method: searched
+source: https://medblocks.com/docs/reference/changelog
+scope: sdk
+scheme: semver
+subject: medblocks (npm) — the Medblocks TypeScript SDK
+current_version: 1.2.0
+note: >-
+  The only dated changelog Medblocks publishes is the SDK changelog, generated from
+  sdk/connect/CHANGELOG.md and rendered newest-first with an explicit Breaking Changes
+  section per release. There is no separate dated changelog for the Platform API itself;
+  API-level change is expressed through the date-pinned Version header (current 2026-04-25).
+  Worth recording: the docs describe v1.2.0 as released, but the npm `latest` dist-tag still
+  resolves to 1.0.0 as of 2026-09-02 — see packages/medblocks-packages.yml.
+entries:
+- version: 1.2.0
+  date: '2026-08-04'
+  breaking: true
+  changes:
+    breaking:
+    - >-
+      Removed the eight typed error subclasses (MedblocksAuthenticationError,
+      MedblocksPermissionError, MedblocksInvalidRequestError, MedblocksNotFoundError,
+      MedblocksConflictError, MedblocksRateLimitError, MedblocksEhrError, MedblocksApiError)
+      and the errorClassForType helper. Every failed request now throws a single
+      MedblocksError; discriminate on err.type and err.code.
+    - retryAfter moved from MedblocksRateLimitError onto the base MedblocksError (set on rate_limit_error, null otherwise).
+    additions:
+    - Added the isMedblocksError(err) type guard for separating API errors from native or network failures at the catch site.
+    - Added the MedblocksErrorCode string-literal type and extended MedblocksErrorType with billing_error.
+  migration: >-
+    Replace `err instanceof MedblocksAuthenticationError` with
+    `isMedblocksError(err) && err.type === "authentication_error"`.
+- version: 1.1.0
+  date: '2026-07-18'
+  breaking: false
+  changes:
+    additions:
+    - >-
+      Added mb.patients.disconnectConnection(patientId, connectionId) for org-side disconnect
+      of a patient connection. Revokes the organization's access to that source and returns a
+      tombstone { id, resource_type: "connection", disconnected: true }.
+- version: 1.0.0
+  date: '2026-07-08'
+  breaking: false
+  changes:
+    additions:
+    - >-
+      Initial release of the Medblocks TypeScript SDK, covering patient sessions, patients,
+      the connections catalog, webhook management, event redelivery, webhook signature
+      verification and return-URL parsing.
+    - >-
+      mb.patients.records(id) returns a connected patient's stored FHIR resources as a
+      cursor-paginated page. Every Patient resource carries the caller's patient_id in its
+      FHIR identifier array under urn:medblocks:patient-id.
+    - Record pages use short, fixed-length opaque cursors that stay valid for 7 days from the response that issued them.

@@ -1,0 +1,131 @@
+generated: '2026-09-02'
+method: derived
+source: >-
+  mcp/medblocks-mcp.yml + openapi/medblocks-platform-openapi.json +
+  https://medblocks.com/docs/mcp
+note: >-
+  The live MCP tools/list is OAuth-gated (HTTP 401), so tool input schemas could not be
+  read. Each row below binds a published tool name/description to the REST operationId(s)
+  that carry the same capability, and confidence is set by how directly the documented tool
+  behaviour maps onto a single operation. Where a tool has no public REST equivalent it is
+  recorded in mcp_only[] with the reason rather than being forced onto an operation.
+surfaces:
+  openapi:
+    file: openapi/medblocks-platform-openapi.json
+    server: https://app.medblocks.com
+    operations: 22
+    gated: false
+    note: the document itself is public; calling it requires an mb_sk_ bearer key
+  mcp:
+    url: https://app.medblocks.com/mcp
+    tools: 10
+    gated: true
+    note: 401 + RFC 9728 WWW-Authenticate; schemas need an authenticated introspection
+  graphql: null
+coverage:
+  mcp_tools: 10
+  mapped_to_rest: 6
+  mcp_only: 4
+  rest_operations: 22
+  rest_only: 16
+crosswalk:
+- tool: list_people
+  category: orientation
+  rest:
+  - api.listPatients
+  binding: direct
+  confidence: high
+  note: >-
+    "People" in the MCP surface are Patient resources in the REST surface; the tool lists
+    everyone set up in the workspace, which is GET /patients.
+- tool: search_health_systems
+  category: discovery
+  rest:
+  - api.listFhirSources
+  binding: direct
+  confidence: medium
+  note: >-
+    GET /connections lists the configured EHR/FHIR source catalog. The tool searches that
+    catalog by name; the REST list endpoint is the same catalog without the tool's
+    conversational name matching.
+- tool: connect_health_system
+  category: connect
+  rest:
+  - api.initPatientSession
+  - api.createPatient
+  binding: composite
+  confidence: high
+  note: >-
+    The tool creates the person when the name is new and then starts a connection session,
+    which is POST /patients followed by POST /patient-sessions. It returns a link the user
+    opens, the same hosted URL a PatientSession returns.
+- tool: check_connection_status
+  category: connect
+  rest:
+  - api.retrievePatientSession
+  - api.getPatient
+  binding: composite
+  confidence: high
+  note: >-
+    Documented as checking "a single session or a whole person" — GET /patient-sessions/{id}
+    for the session, GET /patients/{id} (whose PatientDetail carries connections[].status)
+    for the person.
+- tool: get_health_records
+  category: read
+  rest:
+  - api.getPatientRecords
+  binding: direct
+  confidence: high
+  note: >-
+    GET /patients/{id}/records, filtered by types and since and paginated with the same
+    opaque cursor the REST surface uses.
+- tool: disconnect_health_system
+  category: destructive
+  rest:
+  - api.disconnectPatientConnection
+  binding: direct
+  confidence: high
+  note: DELETE /patients/{id}/connections/{connection_id}; revokes the organization's access and returns a tombstone.
+mcp_only:
+- tool: get_workspace_overview
+  reason: >-
+    Workspace is an MCP/dashboard-level concept. The REST API is scoped to the workspace
+    that minted the API key and publishes no workspace resource or overview operation.
+- tool: list_workspaces
+  reason: >-
+    No REST workspace collection exists. The docs state an API key connection stays bound to
+    the workspace that minted it and cannot switch, so this capability is OAuth/MCP-only.
+- tool: choose_health_systems
+  reason: >-
+    Renders the in-chat selection panel. A client-side UI affordance with no server
+    operation behind it.
+- tool: delete_person
+  reason: >-
+    Semantically close to DELETE /patients/{id} (api.deletePatient), but the tool is
+    documented as removing the person "and all their retrieved records from the workspace"
+    while the REST operation is documented as deleting the patient and their connections.
+    Not asserted as a binding because the record-deletion half is not described by any
+    published operation.
+rest_only:
+- api.health
+- api.getPatient
+- api.updatePatient
+- api.deletePatient
+- api.listPatientSessionsForPatient
+- api.getFhirSource
+- api.retrieveLaunchContext
+- api.createWebhook
+- api.listWebhooks
+- api.getWebhook
+- api.updateWebhook
+- api.deleteWebhook
+- api.rotateWebhookSecret
+- api.listWebhookEvents
+- api.redeliverWebhookEvent
+- api.createPatient
+divergence_summary: >-
+  The MCP server is a conversational projection of the patient-connection and record-read
+  half of the platform. The entire webhook subsystem (7 operations), EHR launch contexts,
+  and patient mutation beyond create are REST-only — an agent operating through MCP alone
+  cannot subscribe to records.sync.completed or manage a delivery endpoint. In the other
+  direction, workspace selection and the in-chat facility picker exist only in MCP.

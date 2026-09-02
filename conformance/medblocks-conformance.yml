@@ -1,0 +1,163 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/security-and-compliance, https://medblocks.com/docs/mcp,
+  https://app.medblocks.com/.well-known/oauth-authorization-server,
+  https://app.medblocks.com/.well-known/oauth-protected-resource/mcp,
+  https://medblocks.com/.well-known/api-catalog, https://medblocks.com/docs/webhooks/signatures,
+  openapi/medblocks-platform-openapi.json
+conformance:
+- id: oauth2
+  conforms: true
+  evidence: >-
+    RFC 6749/6750. https://app.medblocks.com/.well-known/oauth-authorization-server (HTTP 200)
+    declares authorization_code, client_client_credentials and refresh_token grants, PKCE S256,
+    and token/introspection/revocation endpoints. The MCP endpoint answers an unauthenticated
+    POST with 401 and a Bearer WWW-Authenticate challenge.
+- id: rfc8414
+  name: OAuth 2.0 Authorization Server Metadata
+  conforms: true
+  evidence: https://app.medblocks.com/.well-known/oauth-authorization-server returned HTTP 200 with issuer, jwks_uri and endpoint set.
+- id: rfc9728
+  name: OAuth 2.0 Protected Resource Metadata
+  conforms: true
+  evidence: >-
+    https://app.medblocks.com/.well-known/oauth-protected-resource/mcp returned HTTP 200 with
+    resource, authorization_servers and scopes_supported, and the MCP 401 WWW-Authenticate
+    header names that exact document in resource_metadata.
+- id: rfc7591
+  name: OAuth 2.0 Dynamic Client Registration
+  conforms: true
+  evidence: registration_endpoint https://app.medblocks.com/api/auth/oauth2/register is advertised in the authorization-server metadata.
+- id: oidc
+  name: OpenID Connect
+  conforms: true
+  evidence: >-
+    https://app.medblocks.com/.well-known/openid-configuration returned HTTP 200 with
+    userinfo_endpoint, subject_types_supported, id_token_signing_alg_values_supported (EdDSA)
+    and a claims_supported set.
+- id: mcp
+  name: Model Context Protocol
+  conforms: true
+  evidence: >-
+    Hosted server at https://app.medblocks.com/mcp (server name medblocks-platform), 10 tools,
+    streamable HTTP transport, documented for Claude Code, Codex, claude.ai and ChatGPT.
+    Probed 2026-09-02, HTTP 401 with a conformant RFC 9728 challenge.
+- id: rfc9727
+  name: 'RFC 9727 api-catalog: A Well-Known URI for Publishing API Catalogs'
+  conforms: true
+  evidence: >-
+    https://medblocks.com/.well-known/api-catalog returned HTTP 200 with a linkset carrying
+    service-desc (application/vnd.oai.openapi+json), service-doc and describedby links.
+- id: openapi
+  conforms: true
+  evidence: >-
+    OpenAPI 3.1.1 for the Medblocks Platform API (22 operations, all with operationId,
+    summary, description, response examples and a shared ErrorEnvelope) and OpenAPI 3.1.0 for
+    the public site API (3 operations).
+- id: pagination
+  conforms: true
+  evidence: >-
+    Opaque forward cursors on every list endpoint — data / has_more / next_cursor in the
+    response, starting_after and limit as query parameters. Documented at
+    https://medblocks.com/docs/patient-access/get-the-data/pagination and present in the spec.
+- id: idempotency
+  conforms: false
+  evidence: >-
+    No Idempotency-Key header, idempotent-retry semantics or replay window is declared in the
+    OpenAPI document or anywhere in the published docs for the Medblocks Platform API.
+    Idempotency is required of the CALLER (webhook receivers must dedupe on event.id) but is
+    not offered on the write path.
+- id: rfc9457
+  name: RFC 9457 Problem Details
+  conforms: false
+  evidence: >-
+    Errors use a vendor envelope under `error` with application/json, not
+    application/problem+json. See errors/medblocks-problem-types.yml.
+- id: rfc8594
+  name: RFC 8594 Sunset header
+  conforms: false
+  evidence: No Sunset or Deprecation response header is documented, and no operation in the spec is marked deprecated.
+- id: hmac-webhook-signatures
+  conforms: true
+  evidence: >-
+    Medblocks-Signature header, t=<unix seconds>,v1=<hex HMAC-SHA256 of "${t}.${rawBody}">,
+    constant-time compared with a 5-minute default tolerance window.
+    https://medblocks.com/docs/webhooks/signatures
+- id: hipaa
+  conforms: true
+  evidence: >-
+    Listed by the provider at https://medblocks.com/docs/security-and-compliance, which also
+    states commercial plans include BAA support. Self-declared; not independently verified
+    here, and the page directs formal reviewers to request the current security packet.
+- id: soc2-type-ii
+  conforms: true
+  evidence: Listed by the provider at https://medblocks.com/docs/security-and-compliance. Self-declared; no public report or trust center was found.
+- id: iso-27001
+  conforms: true
+  evidence: Listed by the provider at https://medblocks.com/docs/security-and-compliance. Self-declared; no public certificate was found.
+- id: gdpr
+  conforms: true
+  evidence: Listed by the provider at https://medblocks.com/docs/security-and-compliance.
+domain_standards:
+- id: fhir-r4
+  name: HL7 FHIR R4
+  conforms: true
+  role: primary domain standard
+  evidence: >-
+    The contract's own data model is FHIR. openapi/medblocks-platform-openapi.json declares a
+    PatientRecords schema returned by GET /patients/{id}/records whose items are FHIR
+    resources, and info.description states records are normalized and returned as unified FHIR.
+    The FHIR Patient resource carries the caller's own patient id in its identifier array under
+    the system urn:medblocks:patient-id — a FHIR-native identifier scheme published by the
+    provider. Export destinations are FHIR R4 servers
+    (https://medblocks.com/docs/export-to-fhir-server).
+- id: smart-app-launch
+  name: SMART App Launch
+  conforms: true
+  evidence: >-
+    GET /launch-contexts/{id} (api.retrieveLaunchContext, "Retrieve an EHR launch context") is
+    in the published OpenAPI, and https://medblocks.com/docs/clinician-workflow/smart-app-launch
+    documents embedding an app inside the EHR scoped to the patient on screen.
+- id: smart-backend-services
+  name: SMART Backend Services
+  conforms: true
+  evidence: >-
+    https://medblocks.com/docs/backend/cerner documents registering a Cerner/Oracle Health
+    System app for population-level extraction via SMART Backend Services.
+- id: cds-hooks
+  name: CDS Hooks
+  conforms: true
+  evidence: https://medblocks.com/docs/clinician-workflow/cds-hooks documents surfacing guidance as a card in the clinician workflow.
+- id: hl7v2
+  name: HL7 v2
+  conforms: true
+  evidence: >-
+    https://medblocks.com/docs/backend documents HL7v2-over-HTTP as one of the unattended
+    server-to-server ingestion surfaces.
+- id: carin-blue-button
+  name: CARIN Blue Button / CMS Blue Button 2.0
+  conforms: true
+  evidence: >-
+    https://medblocks.com/docs/patient-access/cms-blue-button is a documented patient-access
+    source, and the site publishes https://medblocks.com/carin-code.
+- id: openehr
+  name: openEHR
+  conforms: true
+  evidence: >-
+    Medblocks publishes openFHIR (https://github.com/medblocks/openFHIR), an open-source
+    openEHR-to-FHIR mapping engine, and medblocks-ui, a web-component library for authoring
+    openEHR compositions. This is the company's open-source lineage rather than a declaration
+    inside the Platform API contract, which is FHIR-shaped.
+- id: omop
+  name: OMOP Common Data Model
+  conforms: unverified
+  evidence: >-
+    Named as a normalization target on https://medblocks.com/ but not declared anywhere in the
+    published contract, so recorded without a conformance claim.
+compliance_note: >-
+  HIPAA, SOC 2 Type II, ISO 27001 and GDPR are listed by Medblocks on its own security and
+  compliance page, which also states that commercial plans include BAA support and directs
+  formal reviewers to request the current security packet from the team. No public trust
+  center, no downloadable report and no named auditor was found, and probe-security-programs
+  returned trust=none.

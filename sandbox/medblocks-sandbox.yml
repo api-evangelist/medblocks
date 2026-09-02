@@ -1,0 +1,57 @@
+generated: '2026-09-02'
+method: searched
+source: >-
+  https://medblocks.com/docs/sandboxes, https://medblocks.com/docs/synthetic-fhir-data,
+  https://medblocks.com/docs/security-and-compliance, https://medblocks.com/docs/workspace
+model: workspace-environment
+note: >-
+  Medblocks separates test from live at the WORKSPACE level rather than with a per-request
+  test flag. A Sandbox workspace has its own API keys, source catalog, sample patients,
+  webhooks, exports and dashboard history, and only sees sandbox-scoped sources. There are no
+  published magic identifiers or fixed test values to record — the test data is a synthetic
+  Synthea cohort the customer loads into their own workspace, so nothing here is a shared
+  vendor test credential.
+environments:
+- name: Sandbox
+  key_prefix: mb_sk_sbx_
+  sources: sandbox-scoped only
+  note: Own API keys, source catalog, sample patients, webhooks, exports and dashboard history.
+- name: Production
+  key_prefix: mb_sk_live_
+  sources: live credentials and live patients
+test_data:
+- name: Seed 10 synthetic patients
+  kind: pre-generated Synthea cohort
+  how: Dashboard > Patients > Upload sample patients > Load on the "Seed 10 synthetic patients" row
+  docs: https://medblocks.com/docs/synthetic-fhir-data
+- name: Bring your own FHIR bundles
+  kind: customer-supplied FHIR bundles
+  how: Drop bundles into the same Upload sample patients dialog
+  docs: https://medblocks.com/docs/synthetic-fhir-data
+upstream_sandboxes:
+  note: >-
+    Several EHR vendors provide their own public or partner sandbox portals, close enough to
+    exercise OAuth and SMART on FHIR but not identical to production. Medblocks documents the
+    vendor-specific path for each.
+  sources:
+  - {vendor: Epic, docs: https://medblocks.com/docs/patient-access/epic}
+  - {vendor: Cerner (Oracle Health), docs: https://medblocks.com/docs/patient-access/cerner}
+  - {vendor: athenahealth, docs: https://medblocks.com/docs/patient-access/athena}
+  - {vendor: eClinicalWorks, docs: https://medblocks.com/docs/patient-access/ecw}
+  - {vendor: Meditech, docs: https://medblocks.com/docs/patient-access/meditech}
+  - {vendor: CMS Blue Button, docs: https://medblocks.com/docs/patient-access/cms-blue-button}
+caveats:
+- Synthetic records are useful for UI states, mapping logic, exports and webhook handlers, but should not be used to infer source coverage or production data quality.
+- The MCP server will not touch a sandbox workspace unless the user explicitly asks for sandbox or testing.
+- The assistant never creates a sandbox workspace; it must be created from the dashboard first.
+- An API key connection stays bound to the workspace that minted it and cannot switch.
+production_readiness_checklist:
+  docs: https://medblocks.com/docs/sandboxes
+  items:
+  - A Production workspace exists.
+  - Production credentials are configured from Configure connections.
+  - Return URLs are HTTPS and match the configured apps.
+  - Webhook signature verification uses the raw request body.
+  - API keys and webhook secrets live in server-side secret storage.
+  - The UI handles failed authorization and reconnect prompts.
+  - Export destinations have been tested with non-production data.
