@@ -1,16 +1,14 @@
 aid: medblocks
 name: Medblocks
-description: >-
-  Medblocks is a health-data integration platform that gives applications a single API for a
-  patient's longitudinal health record. Its Medblocks Platform API brokers patient-mediated
-  connections to EHRs, payers and health information networks (Epic, Cerner/Oracle Health,
-  athenahealth, eClinicalWorks, Meditech, CMS Blue Button, UnitedHealthcare and wearables),
-  normalizes what comes back into FHIR R4, and delivers it through cursor-paginated record reads,
-  signed webhooks, and export destinations such as a customer FHIR server or S3. It also ships
-  clinician-workflow surfaces (SMART App Launch, CDS Hooks), backend/bulk services, a hosted
-  Model Context Protocol server for AI assistants, a TypeScript SDK, and the open-source
-  medblocks-ui web-component library and openFHIR openEHR-to-FHIR mapping engine. Founded by
-  Sidharth Ramesh, Medblocks also runs FHIR and openEHR training bootcamps.
+description: Medblocks is a health-data integration platform that gives applications a single API for
+  a patient's longitudinal health record. Its Medblocks Platform API brokers patient-mediated connections
+  to EHRs, payers and health information networks (Epic, Cerner/Oracle Health, athenahealth, eClinicalWorks,
+  Meditech, CMS Blue Button, UnitedHealthcare and wearables), normalizes what comes back into FHIR R4,
+  and delivers it through cursor-paginated record reads, signed webhooks, and export destinations such
+  as a customer FHIR server or S3. It also ships clinician-workflow surfaces (SMART App Launch, CDS Hooks),
+  backend/bulk services, a hosted Model Context Protocol server for AI assistants, a TypeScript SDK, and
+  the open-source medblocks-ui web-component library and openFHIR openEHR-to-FHIR mapping engine. Founded
+  by Sidharth Ramesh, Medblocks also runs FHIR and openEHR training bootcamps.
 url: https://raw.githubusercontent.com/api-evangelist/medblocks/refs/heads/main/apis.yml
 image: https://medblocks.com/_astro/f266b99b-2c21-44ba-b819-c3911c15a61b.CZlakJ61_1CWv2n.jpeg
 x-type: company
@@ -28,22 +26,38 @@ tags:
 - Patient Access
 - Health Data
 - SMART on FHIR
+- Webhook
+- MCP
+- Company
+tags_raw:
+- Health
+- Healthcare
+- FHIR
+- openEHR
+- Interoperability
+- Electronic Health Records
+- Patient Access
+- Health Data
+- SMART on FHIR
 - Webhooks
 - Model Context Protocol
 - Company
 apis:
-- aid: medblocks-platform-api
+- aid: medblocks:medblocks-platform-api
   name: Medblocks Platform API
-  description: >-
-    Server-to-server developer API for the Medblocks Platform. Create patients, start hosted
-    PatientSessions that authorize a patient against one or more EHRs, inspect the resulting
-    connections, read unified FHIR records with cursor pagination, and register/rotate/inspect
-    webhook endpoints and deliveries. Bearer-authenticated with a workspace API key
-    (mb_sk_live_ / mb_sk_sbx_), date-pinned via an optional Version header, and every non-2xx
-    response carries a typed error envelope.
+  description: Server-to-server developer API for the Medblocks Platform. Create patients, start hosted
+    PatientSessions that authorize a patient against one or more EHRs, inspect the resulting connections,
+    read unified FHIR records with cursor pagination, and register/rotate/inspect webhook endpoints and
+    deliveries. Bearer-authenticated with a workspace API key (mb_sk_live_ / mb_sk_sbx_), date-pinned
+    via an optional Version header, and every non-2xx response carries a typed error envelope.
   humanURL: https://medblocks.com/docs/reference/api
   baseURL: https://app.medblocks.com
   tags:
+  - FHIR
+  - Patient Access
+  - Webhook
+  - Health Data
+  tags_raw:
   - FHIR
   - Patient Access
   - Webhooks
@@ -57,13 +71,12 @@ apis:
     url: https://medblocks.com/docs
   - type: APIReference
     url: https://medblocks.com/docs/reference/api
-- aid: medblocks-public-site-api
+- aid: medblocks:medblocks-public-site-api
   name: Medblocks Public Site API
-  description: >-
-    A narrow, unauthenticated, read-only API that medblocks.com publishes for third-party and
-    automated use: training-certificate verification plus the machine-readable blog RSS feed and
-    sitemap index. Described by an OpenAPI 3.1 document served at the site root and advertised
-    through the site's RFC 9727 /.well-known/api-catalog linkset.
+  description: 'A narrow, unauthenticated, read-only API that medblocks.com publishes for third-party
+    and automated use: training-certificate verification plus the machine-readable blog RSS feed and sitemap
+    index. Described by an OpenAPI 3.1 document served at the site root and advertised through the site''s
+    RFC 9727 /.well-known/api-catalog linkset.'
   humanURL: https://medblocks.com/docs
   baseURL: https://medblocks.com
   tags:
