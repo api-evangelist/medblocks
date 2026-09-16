@@ -43,56 +43,142 @@ tags_raw:
 - Model Context Protocol
 - Company
 apis:
-- aid: medblocks:medblocks-platform-api
-  name: Medblocks Platform API
-  description: Server-to-server developer API for the Medblocks Platform. Create patients, start hosted
-    PatientSessions that authorize a patient against one or more EHRs, inspect the resulting connections,
-    read unified FHIR records with cursor pagination, and register/rotate/inspect webhook endpoints and
-    deliveries. Bearer-authenticated with a workspace API key (mb_sk_live_ / mb_sk_sbx_), date-pinned
-    via an optional Version header, and every non-2xx response carries a typed error envelope.
+- aid: medblocks:medblocks-certificates-api
+  name: Medblocks Certificates API
+  description: Verify a training certificate issued by Medblocks.
   humanURL: https://medblocks.com/docs/reference/api
   baseURL: https://app.medblocks.com
   tags:
-  - FHIR
-  - Patient Access
-  - Webhook
-  - Health Data
-  tags_raw:
-  - FHIR
-  - Patient Access
-  - Webhooks
-  - Health Data
+  - Certificates
   properties:
   - type: OpenAPI
-    url: openapi/medblocks-platform-openapi.json
-  - type: Overlay
-    url: overlays/medblocks-platform-overlay.yaml
+    url: openapi/medblocks-certificates-api-openapi.yml
   - type: Documentation
     url: https://medblocks.com/docs
   - type: APIReference
     url: https://medblocks.com/docs/reference/api
-- aid: medblocks:medblocks-public-site-api
-  name: Medblocks Public Site API
-  description: 'A narrow, unauthenticated, read-only API that medblocks.com publishes for third-party
-    and automated use: training-certificate verification plus the machine-readable blog RSS feed and sitemap
-    index. Described by an OpenAPI 3.1 document served at the site root and advertised through the site''s
-    RFC 9727 /.well-known/api-catalog linkset.'
-  humanURL: https://medblocks.com/docs
-  baseURL: https://medblocks.com
+- aid: medblocks:medblocks-connections-api
+  name: Medblocks Connections API
+  description: The Connections API from Medblocks — 2 operation(s) for connections.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
   tags:
-  - Feeds
-  - Certificates
+  - Connections
   properties:
   - type: OpenAPI
-    url: openapi/medblocks-public-site-openapi.json
-  - type: Overlay
-    url: overlays/medblocks-public-site-overlay.yaml
+    url: openapi/medblocks-connections-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-events-api
+  name: Medblocks Events API
+  description: The Events API from Medblocks — 1 operation(s) for events.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Events
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-events-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-feeds-api
+  name: Medblocks Feeds API
+  description: Machine-readable indexes of site content.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Feeds
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-feeds-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-health-api
+  name: Medblocks Health API
+  description: The Health API from Medblocks — 1 operation(s) for health.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Health
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-health-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-launch-contexts-api
+  name: Medblocks Launch Contexts API
+  description: The Launch Contexts API from Medblocks — 1 operation(s) for launch contexts.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Launch Contexts
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-launch-contexts-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-patient-sessions-api
+  name: Medblocks Patient Sessions API
+  description: The Patient Sessions API from Medblocks — 2 operation(s) for patient sessions.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Patient Sessions
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-patient-sessions-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-patients-api
+  name: Medblocks Patients API
+  description: The Patients API from Medblocks — 5 operation(s) for patients.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Patients
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-patients-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
+- aid: medblocks:medblocks-webhooks-api
+  name: Medblocks Webhooks API
+  description: The Webhooks API from Medblocks — 4 operation(s) for webhooks.
+  humanURL: https://medblocks.com/docs/reference/api
+  baseURL: https://app.medblocks.com
+  tags:
+  - Webhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/medblocks-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://medblocks.com/docs
+  - type: APIReference
+    url: https://medblocks.com/docs/reference/api
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Overlay
+  url: overlays/medblocks-platform-overlay.yaml
+- type: Overlay
+  url: overlays/medblocks-public-site-overlay.yaml
 - type: DomainSecurity
   url: security/medblocks-domain-security.yml
 - type: Authentication
