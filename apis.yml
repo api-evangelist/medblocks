@@ -77,6 +77,8 @@ apis:
   humanURL: https://medblocks.com/docs/reference/api
   baseURL: https://app.medblocks.com
   tags:
+  - Event
+  tags_raw:
   - Events
   properties:
   - type: OpenAPI
@@ -91,6 +93,8 @@ apis:
   humanURL: https://medblocks.com/docs/reference/api
   baseURL: https://app.medblocks.com
   tags:
+  - Feed
+  tags_raw:
   - Feeds
   properties:
   - type: OpenAPI
@@ -161,6 +165,8 @@ apis:
   humanURL: https://medblocks.com/docs/reference/api
   baseURL: https://app.medblocks.com
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
