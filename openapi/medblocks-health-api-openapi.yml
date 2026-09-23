@@ -1,0 +1,52 @@
+openapi: 3.2.0
+info:
+  title: Medblocks Health API
+  version: '2026-04-25'
+  description: 'Developer API for the Medblocks Platform.
+
+
+    Connect any patient to one or more EHRs (Epic, Cerner, Athena, …) via a single hosted PatientSession, then pull their unified FHIR records through this API. Server-to-server only — no browser-side calls. Authenticate every request with a Bearer secret key.
+
+
+    **Resources:** `PatientSession`, `Patient`, `Connection`, `FhirSource`. **Conventions:** date-pinned versioning (optional `Version` header), a typed error envelope on every non-2xx response.'
+  license:
+    name: Proprietary
+    url: https://medblocks.com/terms
+servers:
+- url: https://app.medblocks.com
+security:
+- BearerAuth: []
+tags:
+- name: Health
+paths:
+  /health:
+    get:
+      operationId: api.health
+      summary: Liveness check
+      description: Unauthenticated probe that returns `ok` and the current `server_time` to confirm the API is reachable.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    const: true
+                    description: Always true. Presence of this field plus 200 status confirms the server is reachable.
+                  server_time:
+                    type: string
+                    description: Current server time in ISO 8601. Use to spot clock skew.
+                required:
+                - ok
+                - server_time
+      tags:
+      - Health
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (mb_sk_live_...)
+      description: Medblocks API key for server-side requests.

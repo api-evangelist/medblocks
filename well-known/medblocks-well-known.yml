@@ -1,13 +1,18 @@
-generated: '2026-09-02'
+generated: '2026-09-19'
 method: probed
 source: live GET of the named /.well-known/ paths on every Medblocks host
-note: >-
-  medblocks.com serves a real RFC 9727 api-catalog linkset that points at its published
-  OpenAPI, its docs and its llms.txt. app.medblocks.com serves RFC 8414 authorization-server
-  metadata, OpenID Provider metadata and RFC 9728 protected-resource metadata for the hosted
-  MCP server. Neither host serves an RFC 9116 security.txt. app.medblocks.com is a
-  single-page app whose router answers 200 with an HTML shell for unknown paths, so every
-  miss on that host was confirmed by reading the body, not by the status code alone.
+note: 'medblocks.com serves a real RFC 9727 api-catalog linkset that points at its published OpenAPI,
+  its docs and its llms.txt. app.medblocks.com serves RFC 8414 authorization-server metadata, OpenID Provider
+  metadata and RFC 9728 protected-resource metadata for the hosted MCP server. Neither host serves an
+  RFC 9116 security.txt. app.medblocks.com is a single-page app whose router answers 200 with an HTML
+  shell for unknown paths, so every miss on that host was confirmed by reading the body, not by the status
+  code alone.
+
+
+  MCP-host OAuth discovery added 2026-09-19 (roadmap#321/#337): the harvest visits a provider''s primary
+  hosts, and RFC 9728 protected-resource metadata lives on the MCP host, so these documents existed and
+  were invisible to the scorer. Fetched live and validated on `resource`/`issuer`; one negative control
+  per host.'
 hosts:
 - host: medblocks.com
   documents:
@@ -45,7 +50,8 @@ hosts:
     status: 200
     file: medblocks-app-oauth-protected-resource-mcp.json
     content_type: application/json
-    note: RFC 9728; resource https://app.medblocks.com/mcp, referenced by the MCP 401 WWW-Authenticate header
+    note: RFC 9728; resource https://app.medblocks.com/mcp, referenced by the MCP 401 WWW-Authenticate
+      header
   - path: /.well-known/oauth-protected-resource
     status: 404
   - path: /.well-known/security.txt
@@ -55,3 +61,24 @@ hosts:
     status: 404
   - path: /.well-known/api-catalog
     status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: medblocks-app-oauth-protected-resource.json
+    bytes: 323
+  - path: /api/auth/.well-known/oauth-authorization-server
+    status: 200
+    file: medblocks-app-oauth-authorization-server.json
+    bytes: 1698
+  path_echo_control: passed
+x-mcp-probe:
+  probed: '2026-09-19'
+  issue: roadmap#321, roadmap#337
+  documents:
+  - host: https://app.medblocks.com
+    path: /.well-known/oauth-protected-resource
+    file: medblocks-app-oauth-protected-resource.json
+  - host: https://app.medblocks.com
+    path: /api/auth/.well-known/oauth-authorization-server
+    file: medblocks-app-oauth-authorization-server.json
+  validated_on: resource (RFC 9728) / issuer (RFC 8414, OIDC)
+  negative_control: one per host; a 2xx JSON object at an impossible path discards the host

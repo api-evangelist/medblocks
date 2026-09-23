@@ -1,0 +1,326 @@
+openapi: 3.2.0
+info:
+  title: Medblocks Connections API
+  version: '2026-04-25'
+  description: 'Developer API for the Medblocks Platform.
+
+
+    Connect any patient to one or more EHRs (Epic, Cerner, Athena, …) via a single hosted PatientSession, then pull their unified FHIR records through this API. Server-to-server only — no browser-side calls. Authenticate every request with a Bearer secret key.
+
+
+    **Resources:** `PatientSession`, `Patient`, `Connection`, `FhirSource`. **Conventions:** date-pinned versioning (optional `Version` header), a typed error envelope on every non-2xx response.'
+  license:
+    name: Proprietary
+    url: https://medblocks.com/terms
+servers:
+- url: https://app.medblocks.com
+security:
+- BearerAuth: []
+tags:
+- name: Connections
+paths:
+  /connections/{id}:
+    get:
+      operationId: api.getFhirSource
+      summary: Retrieve a FHIR source
+      description: Retrieve a single EHR from the catalog by its `fhirsrc_` id or raw `fhir_base_url`, scoped to your environment.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: FHIR source id (`fhirsrc_*` or raw `fhir_base_url`).
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FhirSource'
+        '400':
+          description: '400'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: '401'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: '403'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: '404'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: '409'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: '429'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+        '500':
+          description: '500'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+      tags:
+      - Connections
+  /connections:
+    get:
+      operationId: api.listFhirSources
+      summary: List FHIR sources
+      description: Search the catalog of registered EHRs with cursor pagination and optional `q` text and vendor `type` filters.
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+          description: Maximum number of items to return.
+        allowEmptyValue: true
+        allowReserved: true
+      - name: starting_after
+        in: query
+        schema:
+          type: string
+          description: Pagination cursor from `next_cursor`.
+        allowEmptyValue: true
+        allowReserved: true
+      - name: q
+        in: query
+        schema:
+          type: string
+          description: Search text for the connection catalog.
+        allowEmptyValue: true
+        allowReserved: true
+      - name: type
+        in: query
+        schema:
+          type: string
+          description: Filter by vendor type (`epic`, `cerner`, etc.).
+        allowEmptyValue: true
+        allowReserved: true
+      - $ref: '#/components/parameters/Version'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resource_type:
+                    const: list
+                    description: Resource type discriminator. Always `"list"` for paginated responses.
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FhirSource'
+                    description: Items on this page.
+                  has_more:
+                    type: boolean
+                    description: '`true` when there''s at least one more page after this one.'
+                  next_cursor:
+                    anyOf:
+                    - type: string
+                    - type: 'null'
+                    description: Pass as `starting_after` to fetch the next page. `null` when there's no more data.
+                required:
+                - resource_type
+                - data
+                - has_more
+                - next_cursor
+                examples:
+                - resource_type: list
+                  data:
+                  - id: fhirsrc_01J9YR9N3X4VZ6P2K5RH7M3LMP
+                    resource_type: fhir_source
+                    name: Epic MyChart
+                    type: epic
+                    fhir_base_url: https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4
+                    logo_url: https://cdn.medblocks.com/ehr-logos/epic.svg
+                    portal_url: https://mychart.epic.com
+                  has_more: false
+                  next_cursor: null
+        '400':
+          description: '400'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: '401'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: '403'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: '404'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: '409'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: '429'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+        '500':
+          description: '500'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+      tags:
+      - Connections
+components:
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
+      schema:
+        type: string
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    FhirSource:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id, prefixed `fhirsrc_`. The raw `fhir_base_url` is also accepted as an alternate identifier.
+        resource_type:
+          const: fhir_source
+          description: Resource type discriminator. Always `"fhir_source"` for this resource.
+        name:
+          type: string
+          description: Display name of the EHR (e.g. "Epic MyChart").
+        type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Vendor type - `epic`, `cerner`, `athena`, `meditech`, etc. Null when unknown.
+        fhir_base_url:
+          type: string
+          description: FHIR R4 base URL. Stable, unique identifier - usable in place of `id` on Session creation.
+        logo_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Vendor logo URL for use in your UI. Null when not yet curated.
+        portal_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient-facing portal URL - useful for help/support links. Null when not curated.
+      required:
+      - id
+      - resource_type
+      - name
+      - type
+      - fhir_base_url
+      - logo_url
+      - portal_url
+      examples:
+      - id: fhirsrc_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: fhir_source
+        name: Epic MyChart
+        type: epic
+        fhir_base_url: https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4
+        logo_url: https://cdn.medblocks.com/ehr-logos/epic.svg
+        portal_url: https://mychart.epic.com
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (mb_sk_live_...)
+      description: Medblocks API key for server-side requests.

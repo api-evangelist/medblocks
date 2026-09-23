@@ -1,0 +1,48 @@
+openapi: 3.2.0
+info:
+  title: Medblocks Public Feeds API
+  version: 1.0.0
+  summary: Public read-only endpoints and machine-readable feeds published by medblocks.com.
+  description: 'This document describes only the endpoints that medblocks.com publishes for third-party and automated use. It is intentionally narrow: other routes under /api are internal to the medblocks.com frontend, are not versioned, and are not supported for external callers.
+
+
+    All endpoints listed here are unauthenticated, read-only, and safe to retry.'
+  contact:
+    name: Medblocks
+    url: https://medblocks.com/contact
+    email: content@medblocks.com
+servers:
+- url: https://medblocks.com
+  description: Production
+tags:
+- name: Feeds
+  description: Machine-readable indexes of site content.
+paths:
+  /rss.xml:
+    get:
+      operationId: getBlogFeed
+      tags:
+      - Feeds
+      summary: RSS feed of the Medblocks blog
+      description: The 30 most recent articles on healthcare interoperability, FHIR, openEHR and SNOMED CT.
+      responses:
+        '200':
+          description: An RSS 2.0 feed.
+          content:
+            application/xml:
+              schema:
+                type: string
+  /sitemap-index.xml:
+    get:
+      operationId: getSitemapIndex
+      tags:
+      - Feeds
+      summary: Sitemap index for medblocks.com
+      description: Points to the sitemaps listing every indexable page on the site. Documentation pages are covered by a separate sitemap at /docs/sitemap.xml.
+      responses:
+        '200':
+          description: A sitemap index document.
+          content:
+            application/xml:
+              schema:
+                type: string

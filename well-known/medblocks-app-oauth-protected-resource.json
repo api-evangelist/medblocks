@@ -1,0 +1,1 @@
+{"resource":"https://app.medblocks.com/mcp","authorization_servers":["https://app.medblocks.com/api/auth"],"scopes_supported":["openid","profile","email","offline_access","patients:read","patients:write","patient_sessions:read","patient_sessions:write","connections:read","fhir:read"],"bearer_methods_supported":["header"]}
