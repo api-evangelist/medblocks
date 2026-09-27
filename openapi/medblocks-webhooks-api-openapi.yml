@@ -658,16 +658,48 @@ paths:
       tags:
       - Webhooks
 components:
-  parameters:
-    Version:
-      name: Version
-      in: header
-      required: false
-      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
-      example: '2026-04-25'
-      schema:
-        type: string
   schemas:
+    WebhookEndpointCreateInput:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only.
+        events:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            anyOf:
+            - const: '*'
+            - enum:
+              - patient_session.completed
+              - connection.token_refresh_failed
+              - records.sync.completed
+              - records.sync.failed
+              type: string
+          description: Event-type filter. Either `["*"]` (deliver all events) or an explicit list of event types. Unknown types are rejected.
+        description:
+          type: string
+          maxLength: 500
+          description: Human-readable label, visible in the dashboard.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Up to 50 keys of arbitrary developer metadata. Echoed back on every read.
+      required:
+      - url
+      - events
+      examples:
+      - url: https://api.fhirapp.com/medblocks/webhook
+        events:
+        - patient_session.completed
+        - records.sync.completed
+        description: Production webhook
+        metadata: {}
     WebhookEvent:
       type: object
       properties:
@@ -805,64 +837,6 @@ components:
           param: null
           doc_url: https://medblocks.com/docs/reference/errors
           request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
-    WebhookEndpointDeleted:
-      type: object
-      properties:
-        id:
-          type: string
-        resource_type:
-          const: webhook_endpoint
-        deleted:
-          const: true
-      required:
-      - id
-      - resource_type
-      - deleted
-      examples:
-      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        resource_type: webhook_endpoint
-        deleted: true
-    WebhookEndpointCreateInput:
-      type: object
-      properties:
-        url:
-          type: string
-          format: uri
-          description: Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only.
-        events:
-          type: array
-          minItems: 1
-          maxItems: 5
-          items:
-            anyOf:
-            - const: '*'
-            - enum:
-              - patient_session.completed
-              - connection.token_refresh_failed
-              - records.sync.completed
-              - records.sync.failed
-              type: string
-          description: Event-type filter. Either `["*"]` (deliver all events) or an explicit list of event types. Unknown types are rejected.
-        description:
-          type: string
-          maxLength: 500
-          description: Human-readable label, visible in the dashboard.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Up to 50 keys of arbitrary developer metadata. Echoed back on every read.
-      required:
-      - url
-      - events
-      examples:
-      - url: https://api.fhirapp.com/medblocks/webhook
-        events:
-        - patient_session.completed
-        - records.sync.completed
-        description: Production webhook
-        metadata: {}
     WebhookEndpoint:
       type: object
       properties:
@@ -998,6 +972,32 @@ components:
         created_at: '2026-04-25T14:30:00.000Z'
         updated_at: '2026-04-25T14:30:00.000Z'
         secret: whsec_01J9YR9N3X4VZ6P2K5RH7M3LMPabcdef0123456789abcdef0123456789
+    WebhookEndpointDeleted:
+      type: object
+      properties:
+        id:
+          type: string
+        resource_type:
+          const: webhook_endpoint
+        deleted:
+          const: true
+      required:
+      - id
+      - resource_type
+      - deleted
+      examples:
+      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: webhook_endpoint
+        deleted: true
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
+      schema:
+        type: string
   headers:
     RetryAfter:
       description: Whole seconds to wait before retrying a rate-limited request.

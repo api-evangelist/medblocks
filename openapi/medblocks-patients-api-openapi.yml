@@ -764,259 +764,7 @@ paths:
       tags:
       - Patients
 components:
-  parameters:
-    Version:
-      name: Version
-      in: header
-      required: false
-      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
-      example: '2026-04-25'
-      schema:
-        type: string
   schemas:
-    Patient:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Your developer-provided patient identifier. Use this in URL paths.
-        resource_type:
-          const: patient
-          description: Resource type discriminator. Always `"patient"`.
-        email:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Patient's email. Null if never supplied.
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Patient's display name. Null if never set.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Developer-supplied metadata key/value pairs.
-        created_at:
-          type: string
-          description: ISO 8601 timestamp of when the patient was created.
-      required:
-      - id
-      - resource_type
-      - email
-      - name
-      - metadata
-      - created_at
-      examples:
-      - id: user_42
-        resource_type: patient
-        email: jane@example.com
-        name: Jane Doe
-        metadata:
-          plan: premium
-        created_at: '2026-04-25T14:30:00.000Z'
-    ErrorEnvelope:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
-      required:
-      - error
-      examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
-    PatientDetail:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Your developer-provided patient identifier. Use this in URL paths.
-        resource_type:
-          const: patient
-          description: Resource type discriminator. Always `"patient"`.
-        email:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Patient's email. Null if never supplied.
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Patient's display name. Null if never set.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Developer-supplied metadata key/value pairs.
-        created_at:
-          type: string
-          description: ISO 8601 timestamp of when the patient was created.
-        connections:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              resource_type:
-                const: connection
-              patient_session_id:
-                anyOf:
-                - type: string
-                - type: 'null'
-              connection_id:
-                type: string
-              status:
-                enum:
-                - active
-                - failed
-                - expired
-                - refresh_failed
-                - disconnected
-                type: string
-              scopes:
-                type: array
-                items:
-                  type: string
-              failure_code:
-                anyOf:
-                - type: string
-                - type: 'null'
-              failure_at:
-                anyOf:
-                - type: string
-                - type: 'null'
-              created_at:
-                type: string
-              updated_at:
-                type: string
-            required:
-            - id
-            - resource_type
-            - patient_session_id
-            - connection_id
-            - status
-            - scopes
-            - failure_code
-            - failure_at
-            - created_at
-            - updated_at
-          description: All connections for this patient in this org, most-recent first. Only included on GET /patients/{id}.
-      required:
-      - id
-      - resource_type
-      - email
-      - name
-      - metadata
-      - created_at
-      - connections
-      examples:
-      - id: user_42
-        resource_type: patient
-        email: jane@example.com
-        name: Jane Doe
-        metadata:
-          plan: premium
-        created_at: '2026-04-25T14:30:00.000Z'
-        connections:
-        - id: conn_01J9YR9N3X4VZ6P2K5RH7M3LMP
-          resource_type: connection
-          patient_session_id: ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT
-          connection_id: fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc
-          status: active
-          scopes:
-          - patient/*.read
-          - offline_access
-          failure_code: null
-          failure_at: null
-          created_at: '2026-04-25T14:35:00.000Z'
-          updated_at: '2026-04-25T14:35:00.000Z'
-    ConnectionDisconnected:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Id of the disconnected connection.
-        resource_type:
-          const: connection
-        disconnected:
-          const: true
-          description: Always `true` for a successful disconnect.
-      required:
-      - id
-      - resource_type
-      - disconnected
-      examples:
-      - id: conn_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        resource_type: connection
-        disconnected: true
-    PatientCreateInput:
-      type: object
-      properties:
-        patient_id:
-          type: string
-          minLength: 1
-          maxLength: 200
-          description: Your stable identifier for this patient. Unique within your organization.
-        email:
-          type: string
-          format: email
-          description: Patient email for display and matching in your app.
-        name:
-          type: string
-          maxLength: 200
-          description: Patient display name.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Additional metadata returned with the Patient.
-      required:
-      - patient_id
-      examples:
-      - patient_id: user_42
-        email: jane@example.com
-        name: Jane Doe
-        metadata:
-          plan: premium
     PatientSession:
       type: object
       properties:
@@ -1146,25 +894,6 @@ components:
         metadata:
           signup_source: checkout
         created_at: '2026-04-25T14:30:00.000Z'
-    PatientDeleted:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Id of the deleted patient.
-        resource_type:
-          const: patient
-        deleted:
-          const: true
-          description: Always `true` for a successful delete.
-      required:
-      - id
-      - resource_type
-      - deleted
-      examples:
-      - id: user_42
-        resource_type: patient
-        deleted: true
     PatientRecords:
       type: object
       properties:
@@ -1226,6 +955,277 @@ components:
         has_more: true
         next_cursor: aB3xK9mQp2Lz
         previous_cursor: null
+    PatientCreateInput:
+      type: object
+      properties:
+        patient_id:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Your stable identifier for this patient. Unique within your organization.
+        email:
+          type: string
+          format: email
+          description: Patient email for display and matching in your app.
+        name:
+          type: string
+          maxLength: 200
+          description: Patient display name.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Additional metadata returned with the Patient.
+      required:
+      - patient_id
+      examples:
+      - patient_id: user_42
+        email: jane@example.com
+        name: Jane Doe
+        metadata:
+          plan: premium
+    PatientDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Your developer-provided patient identifier. Use this in URL paths.
+        resource_type:
+          const: patient
+          description: Resource type discriminator. Always `"patient"`.
+        email:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient's email. Null if never supplied.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient's display name. Null if never set.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Developer-supplied metadata key/value pairs.
+        created_at:
+          type: string
+          description: ISO 8601 timestamp of when the patient was created.
+        connections:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              resource_type:
+                const: connection
+              patient_session_id:
+                anyOf:
+                - type: string
+                - type: 'null'
+              connection_id:
+                type: string
+              status:
+                enum:
+                - active
+                - failed
+                - expired
+                - refresh_failed
+                - disconnected
+                type: string
+              scopes:
+                type: array
+                items:
+                  type: string
+              failure_code:
+                anyOf:
+                - type: string
+                - type: 'null'
+              failure_at:
+                anyOf:
+                - type: string
+                - type: 'null'
+              created_at:
+                type: string
+              updated_at:
+                type: string
+            required:
+            - id
+            - resource_type
+            - patient_session_id
+            - connection_id
+            - status
+            - scopes
+            - failure_code
+            - failure_at
+            - created_at
+            - updated_at
+          description: All connections for this patient in this org, most-recent first. Only included on GET /patients/{id}.
+      required:
+      - id
+      - resource_type
+      - email
+      - name
+      - metadata
+      - created_at
+      - connections
+      examples:
+      - id: user_42
+        resource_type: patient
+        email: jane@example.com
+        name: Jane Doe
+        metadata:
+          plan: premium
+        created_at: '2026-04-25T14:30:00.000Z'
+        connections:
+        - id: conn_01J9YR9N3X4VZ6P2K5RH7M3LMP
+          resource_type: connection
+          patient_session_id: ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT
+          connection_id: fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc
+          status: active
+          scopes:
+          - patient/*.read
+          - offline_access
+          failure_code: null
+          failure_at: null
+          created_at: '2026-04-25T14:35:00.000Z'
+          updated_at: '2026-04-25T14:35:00.000Z'
+    ConnectionDisconnected:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id of the disconnected connection.
+        resource_type:
+          const: connection
+        disconnected:
+          const: true
+          description: Always `true` for a successful disconnect.
+      required:
+      - id
+      - resource_type
+      - disconnected
+      examples:
+      - id: conn_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: connection
+        disconnected: true
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Your developer-provided patient identifier. Use this in URL paths.
+        resource_type:
+          const: patient
+          description: Resource type discriminator. Always `"patient"`.
+        email:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient's email. Null if never supplied.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient's display name. Null if never set.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Developer-supplied metadata key/value pairs.
+        created_at:
+          type: string
+          description: ISO 8601 timestamp of when the patient was created.
+      required:
+      - id
+      - resource_type
+      - email
+      - name
+      - metadata
+      - created_at
+      examples:
+      - id: user_42
+        resource_type: patient
+        email: jane@example.com
+        name: Jane Doe
+        metadata:
+          plan: premium
+        created_at: '2026-04-25T14:30:00.000Z'
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+    PatientDeleted:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id of the deleted patient.
+        resource_type:
+          const: patient
+        deleted:
+          const: true
+          description: Always `true` for a successful delete.
+      required:
+      - id
+      - resource_type
+      - deleted
+      examples:
+      - id: user_42
+        resource_type: patient
+        deleted: true
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
+      schema:
+        type: string
   headers:
     RetryAfter:
       description: Whole seconds to wait before retrying a rate-limited request.

@@ -252,120 +252,7 @@ paths:
       tags:
       - Patient Sessions
 components:
-  parameters:
-    Version:
-      name: Version
-      in: header
-      required: false
-      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
-      example: '2026-04-25'
-      schema:
-        type: string
   schemas:
-    ErrorEnvelope:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
-      required:
-      - error
-      examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
-    PatientSessionInitInput:
-      type: object
-      properties:
-        patient_id:
-          type: string
-          minLength: 1
-          description: Your stable identifier for this patient.
-        patient_email:
-          type: string
-          format: email
-          description: Patient email to store or update.
-        patient_name:
-          type: string
-          description: Patient display name to store or update.
-        connection_id:
-          type: string
-          minLength: 1
-          description: Connection ID from `/connections`. When present, the patient goes straight to that facility's patient portal. Mutually exclusive with `recommended_connection_ids`.
-        recommended_connection_ids:
-          type: array
-          items:
-            type: string
-            minLength: 1
-          description: Connection IDs to show first on the Medblocks-hosted page. Mutually exclusive with `connection_id`.
-        return_url:
-          type: string
-          format: uri
-          description: URL to redirect after the patient session.
-        return_button_label:
-          type: string
-          minLength: 1
-          maxLength: 60
-          description: Text shown on the patient-facing completion button.
-        expires_in:
-          type: integer
-          minimum: 60
-          maximum: 86400
-          description: Seconds until the patient_session token expires. Default 1800 (30 min). Max 86400 (24h).
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Additional metadata returned with the patient session.
-      required:
-      - patient_id
-      - return_url
-      additionalProperties: false
-      examples:
-      - patient_id: user_42
-        patient_email: jane@example.com
-        patient_name: Jane Doe
-        recommended_connection_ids:
-        - fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc
-        - fhirsrc_0a9Ea55aR4u7HaWMyFBN8wcc
-        - fhirsrc_lcvXRHLSSI2WK9Prrt5Qggcc
-        return_url: https://app.example.com/connected
-        return_button_label: Acme Health
-        expires_in: 1800
-        metadata:
-          signup_source: checkout
     PatientSession:
       type: object
       properties:
@@ -495,6 +382,119 @@ components:
         metadata:
           signup_source: checkout
         created_at: '2026-04-25T14:30:00.000Z'
+    PatientSessionInitInput:
+      type: object
+      properties:
+        patient_id:
+          type: string
+          minLength: 1
+          description: Your stable identifier for this patient.
+        patient_email:
+          type: string
+          format: email
+          description: Patient email to store or update.
+        patient_name:
+          type: string
+          description: Patient display name to store or update.
+        connection_id:
+          type: string
+          minLength: 1
+          description: Connection ID from `/connections`. When present, the patient goes straight to that facility's patient portal. Mutually exclusive with `recommended_connection_ids`.
+        recommended_connection_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          description: Connection IDs to show first on the Medblocks-hosted page. Mutually exclusive with `connection_id`.
+        return_url:
+          type: string
+          format: uri
+          description: URL to redirect after the patient session.
+        return_button_label:
+          type: string
+          minLength: 1
+          maxLength: 60
+          description: Text shown on the patient-facing completion button.
+        expires_in:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          description: Seconds until the patient_session token expires. Default 1800 (30 min). Max 86400 (24h).
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Additional metadata returned with the patient session.
+      required:
+      - patient_id
+      - return_url
+      additionalProperties: false
+      examples:
+      - patient_id: user_42
+        patient_email: jane@example.com
+        patient_name: Jane Doe
+        recommended_connection_ids:
+        - fhirsrc_02Zh2bnvRoWQJYgOAkI0Twcc
+        - fhirsrc_0a9Ea55aR4u7HaWMyFBN8wcc
+        - fhirsrc_lcvXRHLSSI2WK9Prrt5Qggcc
+        return_url: https://app.example.com/connected
+        return_button_label: Acme Health
+        expires_in: 1800
+        metadata:
+          signup_source: checkout
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
+      schema:
+        type: string
   headers:
     RetryAfter:
       description: Whole seconds to wait before retrying a rate-limited request.

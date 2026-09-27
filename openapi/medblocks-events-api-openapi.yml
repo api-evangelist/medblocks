@@ -87,15 +87,6 @@ paths:
       tags:
       - Events
 components:
-  parameters:
-    Version:
-      name: Version
-      in: header
-      required: false
-      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
-      example: '2026-04-25'
-      schema:
-        type: string
   schemas:
     WebhookEvent:
       type: object
@@ -240,6 +231,15 @@ components:
       schema:
         type: integer
         minimum: 1
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
+      schema:
+        type: string
   securitySchemes:
     BearerAuth:
       type: http
