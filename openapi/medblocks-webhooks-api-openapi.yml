@@ -659,47 +659,49 @@ paths:
       - Webhooks
 components:
   schemas:
-    WebhookEndpointCreateInput:
+    ErrorEnvelope:
       type: object
       properties:
-        url:
-          type: string
-          format: uri
-          description: Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only.
-        events:
-          type: array
-          minItems: 1
-          maxItems: 5
-          items:
-            anyOf:
-            - const: '*'
-            - enum:
-              - patient_session.completed
-              - connection.token_refresh_failed
-              - records.sync.completed
-              - records.sync.failed
-              type: string
-          description: Event-type filter. Either `["*"]` (deliver all events) or an explicit list of event types. Unknown types are rejected.
-        description:
-          type: string
-          maxLength: 500
-          description: Human-readable label, visible in the dashboard.
-        metadata:
+        error:
           type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Up to 50 keys of arbitrary developer metadata. Echoed back on every read.
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
       required:
-      - url
-      - events
+      - error
       examples:
-      - url: https://api.fhirapp.com/medblocks/webhook
-        events:
-        - patient_session.completed
-        - records.sync.completed
-        description: Production webhook
-        metadata: {}
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
     WebhookEvent:
       type: object
       properties:
@@ -794,49 +796,47 @@ components:
         last_response_body: ok
         last_redelivered_at: null
         created_at: '2026-04-25T14:35:00.000Z'
-    ErrorEnvelope:
+    WebhookEndpointCreateInput:
       type: object
       properties:
-        error:
+        url:
+          type: string
+          format: uri
+          description: Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only.
+        events:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            anyOf:
+            - const: '*'
+            - enum:
+              - patient_session.completed
+              - connection.token_refresh_failed
+              - records.sync.completed
+              - records.sync.failed
+              type: string
+          description: Event-type filter. Either `["*"]` (deliver all events) or an explicit list of event types. Unknown types are rejected.
+        description:
+          type: string
+          maxLength: 500
+          description: Human-readable label, visible in the dashboard.
+        metadata:
           type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Up to 50 keys of arbitrary developer metadata. Echoed back on every read.
       required:
-      - error
+      - url
+      - events
       examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+      - url: https://api.fhirapp.com/medblocks/webhook
+        events:
+        - patient_session.completed
+        - records.sync.completed
+        description: Production webhook
+        metadata: {}
     WebhookEndpoint:
       type: object
       properties:

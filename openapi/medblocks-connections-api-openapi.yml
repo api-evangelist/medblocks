@@ -213,7 +213,56 @@ paths:
       tags:
       - Connections
 components:
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
+      schema:
+        type: integer
+        minimum: 1
   schemas:
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
     FhirSource:
       type: object
       properties:
@@ -260,55 +309,6 @@ components:
         fhir_base_url: https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4
         logo_url: https://cdn.medblocks.com/ehr-logos/epic.svg
         portal_url: https://mychart.epic.com
-    ErrorEnvelope:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
-      required:
-      - error
-      examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
-  headers:
-    RetryAfter:
-      description: Whole seconds to wait before retrying a rate-limited request.
-      schema:
-        type: integer
-        minimum: 1
   parameters:
     Version:
       name: Version
