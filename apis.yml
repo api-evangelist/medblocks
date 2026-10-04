@@ -181,6 +181,9 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: CapabilityMap
+  url: capabilities/medblocks-capability-edges.yml
+  name: Medblocks Business Capability Map
 - type: Overlay
   url: overlays/medblocks-platform-overlay.yaml
 - type: Overlay
