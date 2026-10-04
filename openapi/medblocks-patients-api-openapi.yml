@@ -764,102 +764,13 @@ paths:
       tags:
       - Patients
 components:
-  parameters:
-    Version:
-      name: Version
-      in: header
-      required: false
-      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
-      example: '2026-04-25'
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
       schema:
-        type: string
+        type: integer
+        minimum: 1
   schemas:
-    Patient:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Your developer-provided patient identifier. Use this in URL paths.
-        resource_type:
-          const: patient
-          description: Resource type discriminator. Always `"patient"`.
-        email:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Patient's email. Null if never supplied.
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Patient's display name. Null if never set.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Developer-supplied metadata key/value pairs.
-        created_at:
-          type: string
-          description: ISO 8601 timestamp of when the patient was created.
-      required:
-      - id
-      - resource_type
-      - email
-      - name
-      - metadata
-      - created_at
-      examples:
-      - id: user_42
-        resource_type: patient
-        email: jane@example.com
-        name: Jane Doe
-        metadata:
-          plan: premium
-        created_at: '2026-04-25T14:30:00.000Z'
-    ErrorEnvelope:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
-      required:
-      - error
-      examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
     PatientDetail:
       type: object
       properties:
@@ -1146,6 +1057,49 @@ components:
         metadata:
           signup_source: checkout
         created_at: '2026-04-25T14:30:00.000Z'
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
     PatientDeleted:
       type: object
       properties:
@@ -1226,12 +1180,58 @@ components:
         has_more: true
         next_cursor: aB3xK9mQp2Lz
         previous_cursor: null
-  headers:
-    RetryAfter:
-      description: Whole seconds to wait before retrying a rate-limited request.
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Your developer-provided patient identifier. Use this in URL paths.
+        resource_type:
+          const: patient
+          description: Resource type discriminator. Always `"patient"`.
+        email:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient's email. Null if never supplied.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Patient's display name. Null if never set.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Developer-supplied metadata key/value pairs.
+        created_at:
+          type: string
+          description: ISO 8601 timestamp of when the patient was created.
+      required:
+      - id
+      - resource_type
+      - email
+      - name
+      - metadata
+      - created_at
+      examples:
+      - id: user_42
+        resource_type: patient
+        email: jane@example.com
+        name: Jane Doe
+        metadata:
+          plan: premium
+        created_at: '2026-04-25T14:30:00.000Z'
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
       schema:
-        type: integer
-        minimum: 1
+        type: string
   securitySchemes:
     BearerAuth:
       type: http

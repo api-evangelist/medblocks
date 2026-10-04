@@ -658,15 +658,12 @@ paths:
       tags:
       - Webhooks
 components:
-  parameters:
-    Version:
-      name: Version
-      in: header
-      required: false
-      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
-      example: '2026-04-25'
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
       schema:
-        type: string
+        type: integer
+        minimum: 1
   schemas:
     WebhookEvent:
       type: object
@@ -762,172 +759,6 @@ components:
         last_response_body: ok
         last_redelivered_at: null
         created_at: '2026-04-25T14:35:00.000Z'
-    ErrorEnvelope:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
-      required:
-      - error
-      examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
-    WebhookEndpointDeleted:
-      type: object
-      properties:
-        id:
-          type: string
-        resource_type:
-          const: webhook_endpoint
-        deleted:
-          const: true
-      required:
-      - id
-      - resource_type
-      - deleted
-      examples:
-      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        resource_type: webhook_endpoint
-        deleted: true
-    WebhookEndpointCreateInput:
-      type: object
-      properties:
-        url:
-          type: string
-          format: uri
-          description: Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only.
-        events:
-          type: array
-          minItems: 1
-          maxItems: 5
-          items:
-            anyOf:
-            - const: '*'
-            - enum:
-              - patient_session.completed
-              - connection.token_refresh_failed
-              - records.sync.completed
-              - records.sync.failed
-              type: string
-          description: Event-type filter. Either `["*"]` (deliver all events) or an explicit list of event types. Unknown types are rejected.
-        description:
-          type: string
-          maxLength: 500
-          description: Human-readable label, visible in the dashboard.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Up to 50 keys of arbitrary developer metadata. Echoed back on every read.
-      required:
-      - url
-      - events
-      examples:
-      - url: https://api.fhirapp.com/medblocks/webhook
-        events:
-        - patient_session.completed
-        - records.sync.completed
-        description: Production webhook
-        metadata: {}
-    WebhookEndpoint:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Public id, prefixed `wh_`.
-        resource_type:
-          const: webhook_endpoint
-          description: Resource type discriminator. Always `"webhook_endpoint"`.
-        url:
-          type: string
-          description: Your HTTPS endpoint URL.
-        events:
-          type: array
-          items:
-            type: string
-          description: Event-type filter. `["*"]` means all events; otherwise the list of subscribed event types.
-        status:
-          enum:
-          - active
-          - disabled
-          type: string
-          description: Lifecycle status. `active` accepts deliveries; `disabled` skips them. Auto-flipped to `disabled` after the delivery worker exhausts retries on this endpoint.
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Human-readable label. Null if never set.
-        metadata:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-          description: Developer-supplied metadata key/value pairs.
-        api_version:
-          type: string
-          description: API version pinned at registration time. Immutable. Copied onto every `webhook_event.api_version` this endpoint fires.
-        created_at:
-          type: string
-        updated_at:
-          type: string
-      required:
-      - id
-      - resource_type
-      - url
-      - events
-      - status
-      - description
-      - metadata
-      - api_version
-      - created_at
-      - updated_at
-      examples:
-      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        resource_type: webhook_endpoint
-        url: https://api.fhirapp.com/medblocks/webhook
-        events:
-        - patient_session.completed
-        - connection.token_refresh_failed
-        status: active
-        description: Production webhook
-        metadata: {}
-        api_version: '2026-04-25'
-        created_at: '2026-04-25T14:30:00.000Z'
-        updated_at: '2026-04-25T14:30:00.000Z'
     WebhookEndpointWithSecret:
       type: object
       properties:
@@ -998,12 +829,181 @@ components:
         created_at: '2026-04-25T14:30:00.000Z'
         updated_at: '2026-04-25T14:30:00.000Z'
         secret: whsec_01J9YR9N3X4VZ6P2K5RH7M3LMPabcdef0123456789abcdef0123456789
-  headers:
-    RetryAfter:
-      description: Whole seconds to wait before retrying a rate-limited request.
+    WebhookEndpointDeleted:
+      type: object
+      properties:
+        id:
+          type: string
+        resource_type:
+          const: webhook_endpoint
+        deleted:
+          const: true
+      required:
+      - id
+      - resource_type
+      - deleted
+      examples:
+      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: webhook_endpoint
+        deleted: true
+    WebhookEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id, prefixed `wh_`.
+        resource_type:
+          const: webhook_endpoint
+          description: Resource type discriminator. Always `"webhook_endpoint"`.
+        url:
+          type: string
+          description: Your HTTPS endpoint URL.
+        events:
+          type: array
+          items:
+            type: string
+          description: Event-type filter. `["*"]` means all events; otherwise the list of subscribed event types.
+        status:
+          enum:
+          - active
+          - disabled
+          type: string
+          description: Lifecycle status. `active` accepts deliveries; `disabled` skips them. Auto-flipped to `disabled` after the delivery worker exhausts retries on this endpoint.
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Human-readable label. Null if never set.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Developer-supplied metadata key/value pairs.
+        api_version:
+          type: string
+          description: API version pinned at registration time. Immutable. Copied onto every `webhook_event.api_version` this endpoint fires.
+        created_at:
+          type: string
+        updated_at:
+          type: string
+      required:
+      - id
+      - resource_type
+      - url
+      - events
+      - status
+      - description
+      - metadata
+      - api_version
+      - created_at
+      - updated_at
+      examples:
+      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: webhook_endpoint
+        url: https://api.fhirapp.com/medblocks/webhook
+        events:
+        - patient_session.completed
+        - connection.token_refresh_failed
+        status: active
+        description: Production webhook
+        metadata: {}
+        api_version: '2026-04-25'
+        created_at: '2026-04-25T14:30:00.000Z'
+        updated_at: '2026-04-25T14:30:00.000Z'
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+    WebhookEndpointCreateInput:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Your HTTPS endpoint that receives event deliveries. `http://localhost` is allowed for local dev only.
+        events:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            anyOf:
+            - const: '*'
+            - enum:
+              - patient_session.completed
+              - connection.token_refresh_failed
+              - records.sync.completed
+              - records.sync.failed
+              type: string
+          description: Event-type filter. Either `["*"]` (deliver all events) or an explicit list of event types. Unknown types are rejected.
+        description:
+          type: string
+          maxLength: 500
+          description: Human-readable label, visible in the dashboard.
+        metadata:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+          description: Up to 50 keys of arbitrary developer metadata. Echoed back on every read.
+      required:
+      - url
+      - events
+      examples:
+      - url: https://api.fhirapp.com/medblocks/webhook
+        events:
+        - patient_session.completed
+        - records.sync.completed
+        description: Production webhook
+        metadata: {}
+  parameters:
+    Version:
+      name: Version
+      in: header
+      required: false
+      description: Date-pinned API version. If omitted, Medblocks uses the version pinned on your API key.
+      example: '2026-04-25'
       schema:
-        type: integer
-        minimum: 1
+        type: string
   securitySchemes:
     BearerAuth:
       type: http
