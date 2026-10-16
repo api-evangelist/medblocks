@@ -108,3 +108,27 @@ skills_over_mcp:
   published: true
   note: The server publishes the Medblocks agent skill through the draft Skills-over-MCP extension; ChatGPT
     reads the catalog on Scan Tools. Clients without the extension see ordinary tools and resources.
+rfc9728:
+  endpoint: https://app.medblocks.com/mcp
+  metadata_url: https://app.medblocks.com/.well-known/oauth-protected-resource/mcp
+  discovered_via: WWW-Authenticate resource_metadata on an anonymous POST initialize
+  fetched: '2026-09-25'
+  http_status: 200
+  content_type: application/json
+  document:
+    resource: https://app.medblocks.com/mcp
+    authorization_servers:
+    - https://app.medblocks.com/api/auth
+    scopes_supported:
+    - openid
+    - profile
+    - email
+    - offline_access
+    - patients:read
+    - patients:write
+    - patient_sessions:read
+    - patient_sessions:write
+    - connections:read
+    - fhir:read
+    bearer_methods_supported:
+    - header

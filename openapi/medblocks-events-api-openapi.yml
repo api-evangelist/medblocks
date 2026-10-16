@@ -87,12 +87,6 @@ paths:
       tags:
       - Events
 components:
-  headers:
-    RetryAfter:
-      description: Whole seconds to wait before retrying a rate-limited request.
-      schema:
-        type: integer
-        minimum: 1
   schemas:
     WebhookEvent:
       type: object
@@ -231,6 +225,12 @@ components:
           param: null
           doc_url: https://medblocks.com/docs/reference/errors
           request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
+      schema:
+        type: integer
+        minimum: 1
   parameters:
     Version:
       name: Version

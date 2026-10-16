@@ -1,0 +1,37 @@
+slug: medblocks
+provider: Medblocks
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 2
+edges:
+- tag: Webhooks
+  spec_file: medblocks-webhooks-api-openapi.yml
+  capability_id: BC-4270.80
+  capability_id_l1: BC-4270
+  capability_name: Webhook & Event Subscription Management
+  confidence: 0.9
+  evidence: POST /webhooks  api.createWebhook  Register a webhook endpoint; POST /webhooks/{id}/rotate-secret  Rotate
+    the signing secret for a webhook endpoint; GET /webhooks/{id}/events  List recent webhook events
+  reason: Full lifecycle of outbound webhook endpoints — registration, update, deletion, secret rotation
+    and delivered-event inspection — which is exactly outbound webhook/event subscription management on
+    a developer platform.
+- tag: Events
+  spec_file: medblocks-events-api-openapi.yml
+  capability_id: BC-4270.80
+  capability_id_l1: BC-4270
+  capability_name: Webhook & Event Subscription Management
+  confidence: 0.82
+  evidence: 'POST /events/{id}/redeliver  api.redeliverWebhookEvent  Manually redeliver a webhook event;
+    schemas: WebhookEvent'
+  reason: The single operation redelivers an outbound webhook event for developer integrations — delivery
+    reliability of event subscriptions on a developer-facing platform API. Not a clinical or business-event
+    capability.
