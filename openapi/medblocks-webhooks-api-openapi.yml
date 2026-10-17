@@ -659,143 +659,6 @@ paths:
       - Webhooks
 components:
   schemas:
-    ErrorEnvelope:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: Error category (e.g. authentication_error, permission_error, conflict_error).
-            code:
-              type: string
-              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
-            message:
-              type: string
-              description: Human-readable error message.
-            param:
-              anyOf:
-              - type: string
-              - type: 'null'
-              description: Affected request parameter, if applicable.
-            doc_url:
-              type: string
-              description: Link to the API errors reference.
-            request_id:
-              type: string
-              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
-          required:
-          - type
-          - code
-          - message
-          - param
-          - doc_url
-          - request_id
-      required:
-      - error
-      examples:
-      - error:
-          type: authentication_error
-          code: invalid_api_key
-          message: API key invalid
-          param: null
-          doc_url: https://medblocks.com/docs/reference/errors
-          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
-    WebhookEvent:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Public id, prefixed `evt_`.
-        resource_type:
-          const: event
-        webhook_endpoint_id:
-          type: string
-          description: The `wh_*` endpoint this delivery targets.
-        type:
-          enum:
-          - patient_session.completed
-          - connection.token_refresh_failed
-          - records.sync.completed
-          - records.sync.failed
-          type: string
-          description: Event type discriminator.
-        data:
-          type: object
-          properties:
-            object:
-              description: Event-specific payload. Shape depends on `type` — see the SDK's typed `WebhookEvent` union for the discriminated shape.
-        api_version:
-          type: string
-          description: API version pinned at the endpoint at fire time.
-        attempts:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-          description: Number of delivery attempts made so far (incl. the current one).
-        next_attempt_at:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: ISO 8601 timestamp of the next scheduled retry. Null when terminal (delivered or exhausted).
-        delivered_at:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: ISO 8601 timestamp of successful delivery. Null until a 2xx response is received.
-        last_status_code:
-          anyOf:
-          - type: integer
-            minimum: -9007199254740991
-            maximum: 9007199254740991
-          - type: 'null'
-          description: HTTP status code from the most recent attempt.
-        last_response_body:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Response body from the most recent attempt, truncated to 4 KB.
-        last_redelivered_at:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: ISO 8601 timestamp of the most recent manual redelivery. Null if never redelivered.
-        created_at:
-          type: string
-      required:
-      - id
-      - resource_type
-      - webhook_endpoint_id
-      - type
-      - data
-      - api_version
-      - attempts
-      - next_attempt_at
-      - delivered_at
-      - last_status_code
-      - last_response_body
-      - last_redelivered_at
-      - created_at
-      examples:
-      - id: evt_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        resource_type: event
-        webhook_endpoint_id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        type: patient_session.completed
-        data:
-          object:
-            id: ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT
-            resource_type: patient_session
-            status: complete
-            patient_id: user_42
-        api_version: '2026-04-25'
-        attempts: 1
-        next_attempt_at: null
-        delivered_at: '2026-04-25T14:35:02.000Z'
-        last_status_code: 200
-        last_response_body: ok
-        last_redelivered_at: null
-        created_at: '2026-04-25T14:35:00.000Z'
     WebhookEndpointCreateInput:
       type: object
       properties:
@@ -902,6 +765,66 @@ components:
         api_version: '2026-04-25'
         created_at: '2026-04-25T14:30:00.000Z'
         updated_at: '2026-04-25T14:30:00.000Z'
+    WebhookEndpointDeleted:
+      type: object
+      properties:
+        id:
+          type: string
+        resource_type:
+          const: webhook_endpoint
+        deleted:
+          const: true
+      required:
+      - id
+      - resource_type
+      - deleted
+      examples:
+      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: webhook_endpoint
+        deleted: true
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category (e.g. authentication_error, permission_error, conflict_error).
+            code:
+              type: string
+              description: Stable code within the type (e.g. invalid_api_key, external_id_already_exists).
+            message:
+              type: string
+              description: Human-readable error message.
+            param:
+              anyOf:
+              - type: string
+              - type: 'null'
+              description: Affected request parameter, if applicable.
+            doc_url:
+              type: string
+              description: Link to the API errors reference.
+            request_id:
+              type: string
+              description: Correlation id - include in support tickets. Echoes the `X-Request-Id` response header.
+          required:
+          - type
+          - code
+          - message
+          - param
+          - doc_url
+          - request_id
+      required:
+      - error
+      examples:
+      - error:
+          type: authentication_error
+          code: invalid_api_key
+          message: API key invalid
+          param: null
+          doc_url: https://medblocks.com/docs/reference/errors
+          request_id: 9c9b6f7a-8e4f-4a3b-9c1e-6f3a2d8b7c4d
     WebhookEndpointWithSecret:
       type: object
       properties:
@@ -972,23 +895,106 @@ components:
         created_at: '2026-04-25T14:30:00.000Z'
         updated_at: '2026-04-25T14:30:00.000Z'
         secret: whsec_01J9YR9N3X4VZ6P2K5RH7M3LMPabcdef0123456789abcdef0123456789
-    WebhookEndpointDeleted:
+    WebhookEvent:
       type: object
       properties:
         id:
           type: string
+          description: Public id, prefixed `evt_`.
         resource_type:
-          const: webhook_endpoint
-        deleted:
-          const: true
+          const: event
+        webhook_endpoint_id:
+          type: string
+          description: The `wh_*` endpoint this delivery targets.
+        type:
+          enum:
+          - patient_session.completed
+          - connection.token_refresh_failed
+          - records.sync.completed
+          - records.sync.failed
+          type: string
+          description: Event type discriminator.
+        data:
+          type: object
+          properties:
+            object:
+              description: Event-specific payload. Shape depends on `type` — see the SDK's typed `WebhookEvent` union for the discriminated shape.
+        api_version:
+          type: string
+          description: API version pinned at the endpoint at fire time.
+        attempts:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+          description: Number of delivery attempts made so far (incl. the current one).
+        next_attempt_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: ISO 8601 timestamp of the next scheduled retry. Null when terminal (delivered or exhausted).
+        delivered_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: ISO 8601 timestamp of successful delivery. Null until a 2xx response is received.
+        last_status_code:
+          anyOf:
+          - type: integer
+            minimum: -9007199254740991
+            maximum: 9007199254740991
+          - type: 'null'
+          description: HTTP status code from the most recent attempt.
+        last_response_body:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Response body from the most recent attempt, truncated to 4 KB.
+        last_redelivered_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: ISO 8601 timestamp of the most recent manual redelivery. Null if never redelivered.
+        created_at:
+          type: string
       required:
       - id
       - resource_type
-      - deleted
+      - webhook_endpoint_id
+      - type
+      - data
+      - api_version
+      - attempts
+      - next_attempt_at
+      - delivered_at
+      - last_status_code
+      - last_response_body
+      - last_redelivered_at
+      - created_at
       examples:
-      - id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
-        resource_type: webhook_endpoint
-        deleted: true
+      - id: evt_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        resource_type: event
+        webhook_endpoint_id: wh_01J9YR9N3X4VZ6P2K5RH7M3LMP
+        type: patient_session.completed
+        data:
+          object:
+            id: ps_01J9YQ8M2X4VZ6P2K5RH7M3KQT
+            resource_type: patient_session
+            status: complete
+            patient_id: user_42
+        api_version: '2026-04-25'
+        attempts: 1
+        next_attempt_at: null
+        delivered_at: '2026-04-25T14:35:02.000Z'
+        last_status_code: 200
+        last_response_body: ok
+        last_redelivered_at: null
+        created_at: '2026-04-25T14:35:00.000Z'
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
+      schema:
+        type: integer
+        minimum: 1
   parameters:
     Version:
       name: Version
@@ -998,12 +1004,6 @@ components:
       example: '2026-04-25'
       schema:
         type: string
-  headers:
-    RetryAfter:
-      description: Whole seconds to wait before retrying a rate-limited request.
-      schema:
-        type: integer
-        minimum: 1
   securitySchemes:
     BearerAuth:
       type: http

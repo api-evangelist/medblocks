@@ -486,6 +486,12 @@ components:
         expires_in: 1800
         metadata:
           signup_source: checkout
+  headers:
+    RetryAfter:
+      description: Whole seconds to wait before retrying a rate-limited request.
+      schema:
+        type: integer
+        minimum: 1
   parameters:
     Version:
       name: Version
@@ -495,12 +501,6 @@ components:
       example: '2026-04-25'
       schema:
         type: string
-  headers:
-    RetryAfter:
-      description: Whole seconds to wait before retrying a rate-limited request.
-      schema:
-        type: integer
-        minimum: 1
   securitySchemes:
     BearerAuth:
       type: http
