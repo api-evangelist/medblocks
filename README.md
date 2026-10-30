@@ -64,5 +64,141 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Medblocks is a company surfaced via the API Evangelist harvest backlog (source: openehr-coalition) and added to the network as a stub for full-pipeline profiling.
-- https://medblocks.com/
+Medblocks is a health-data integration platform that gives applications a single API for a patient's longitudinal health record. Its Medblocks Platform API brokers patient-mediated connections to EHRs, payers and health information networks (Epic, Cerner/Oracle Health, athenahealth, eClinicalWorks, Meditech, CMS Blue Button, UnitedHealthcare and wearables), normalizes what comes back into FHIR R4, and delivers it through cursor-paginated record reads, signed webhooks, and export destinations such as a customer FHIR server or S3. It also ships clinician-workflow surfaces (SMART App Launch, CDS Hooks), backend/bulk services, a hosted Model Context Protocol server for AI assistants, a TypeScript SDK, and the open-source medblocks-ui web-component library and openFHIR openEHR-to-FHIR mapping engine. Founded by Sidharth Ramesh, Medblocks also runs FHIR and openEHR training bootcamps.
+
+**Areas:** Health · Healthcare · FHIR · openEHR · Interoperability · Electronic Health Records · Patient Access · Health Data · SMART on FHIR · Webhook · MCP · Company
+
+## Medblocks on APIs.io
+
+Everything profiled for Medblocks is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/medblocks/](https://apis.io/providers/medblocks/)** — or go straight to one of the APIs or properties below.
+
+### APIs (9)
+
+- [Medblocks Certificates API](https://apis.io/apis/medblocks/medblocks-certificates-api/) — Verify a training certificate issued by Medblocks.
+- [Medblocks Connections API](https://apis.io/apis/medblocks/medblocks-connections-api/) — The Connections API from Medblocks — 2 operation(s) for connections.
+- [Medblocks Events API](https://apis.io/apis/medblocks/medblocks-events-api/) — The Events API from Medblocks — 1 operation(s) for events.
+- [Medblocks Feeds API](https://apis.io/apis/medblocks/medblocks-feeds-api/) — Machine-readable indexes of site content.
+- [Medblocks Health API](https://apis.io/apis/medblocks/medblocks-health-api/) — The Health API from Medblocks — 1 operation(s) for health.
+- [Medblocks Launch Contexts API](https://apis.io/apis/medblocks/medblocks-launch-contexts-api/) — The Launch Contexts API from Medblocks — 1 operation(s) for launch contexts.
+- [Medblocks Patient Sessions API](https://apis.io/apis/medblocks/medblocks-patient-sessions-api/) — The Patient Sessions API from Medblocks — 2 operation(s) for patient sessions.
+- [Medblocks Patients API](https://apis.io/apis/medblocks/medblocks-patients-api/) — The Patients API from Medblocks — 5 operation(s) for patients.
+- [Medblocks Webhooks API](https://apis.io/apis/medblocks/medblocks-webhooks-api/) — The Webhooks API from Medblocks — 4 operation(s) for webhooks.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Medblocks Webhooks](https://apis.io/asyncapis/medblocks/medblocks-webhooks/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [medblocks-platform](https://apis.io/servers/medblocks/medblocks-platform/)
+
+#### Overlays (2)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Medblocks Platform Overlay](https://apis.io/overlays/medblocks/medblocks-platform-overlay/)
+- [Medblocks Public Site Overlay](https://apis.io/overlays/medblocks/medblocks-public-site-overlay/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Medblocks Authentication](https://apis.io/security/medblocks/medblocks-authentication/)
+- [Medblocks Domain Security](https://apis.io/security/medblocks/medblocks-domain-security/)
+
+#### OAuth scopes (1)
+
+The permissions the API asks for.
+
+- [Medblocks Scopes](https://apis.io/scopes/medblocks/medblocks-scopes/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Medblocks Plans Pricing](https://apis.io/plans/medblocks/medblocks-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Medblocks Rate Limits](https://apis.io/rate-limits/medblocks/medblocks-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://medblocks.com/)
+- [Documentation](https://medblocks.com/docs)
+- [Getting started](https://medblocks.com/docs/quickstarts)
+- [API reference](https://medblocks.com/docs/reference/api)
+- [Pricing](https://medblocks.com/docs/billing)
+- [Sign up](https://app.medblocks.com/)
+- [Support](https://medblocks.com/contact)
+- [Blog](https://medblocks.com/blog)
+- [Terms of service](https://medblocks.com/terms)
+- [Privacy policy](https://medblocks.com/privacy-policy)
+- [GitHub](https://github.com/medblocks)
+
+## API Evangelist rating
+
+**Kin Score 61.6** — strong · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 75.0 |
+| Contract quality | 59.9 |
+| Contract governance | 18.2 |
+| Operational transparency | 47.4 |
+| Developer ergonomics | 78.6 |
+| Access clarity | 60.5 |
+
+**Agent readiness 66.3** — agent-ready (gated down from agent-native)
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | verified |
+| Auth Clarity | served (partial credit) |
+| Idempotency | — |
+| Error Semantics | verified |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | verified |
+| Event Surface Described | yes |
+| Agent Skills | yes |
+| Well Known Catalog | yes |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | paginated |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 36.7** — Health
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/medblocks/](https://apis.io/providers/medblocks/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Medblocks: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/medblocks/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
